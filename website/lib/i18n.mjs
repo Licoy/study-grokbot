@@ -23,7 +23,9 @@ export const dict = {
       title: 'Join the community',
       lede: 'Swap tips and workflows with other GrokBot users, and hear about each new issue first.',
       qrAlt: (name) => `${name} QR code`,
-      soon: 'Placeholder code · the real one is coming soon',
+      // 还没配置 qr 时的说明（二维码是模糊的示意码）/ shown while qr is empty (the code is a blurred sample)
+      soon: 'The group opens soon',
+      soonNote: 'This is a sample code and can’t be scanned yet',
       mobile: 'On a phone: take a screenshot, then pick it from the album in the scanner.',
       channels: {
         wechat: { name: 'WeChat group', sub: 'WeChat', desc: 'New-issue reminders, prompt sharing and help with GrokBot questions.',
@@ -200,7 +202,8 @@ export const dict = {
       title: '加入社群',
       lede: '和其他 GrokBot 玩家交流技巧和工作流，新一期上线第一时间提醒。',
       qrAlt: (name) => `${name}二维码`,
-      soon: '临时二维码 · 正式群码即将上线',
+      soon: '交流群即将开放',
+      soonNote: '当前为示意二维码，暂时无法扫码加入',
       mobile: '在手机上：先截图保存，再用扫一扫从相册识别。',
       channels: {
         wechat: { name: '微信交流群', sub: '微信', desc: '每期更新提醒、提示词分享，以及 GrokBot 使用问题互助。',

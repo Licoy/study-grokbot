@@ -371,8 +371,10 @@ function communityPage(lang) {
       <ol class="cm-steps">${x.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol>
     </div>
     <figure class="cm-qr">
-      <div class="qr${live ? '' : ' qr-temp'}" role="img" aria-label="${esc(live ? c.qrAlt(x.name) : `${c.qrAlt(x.name)} · ${c.soon}`)}">${code}${ch.logo === false ? '' : `<span class="qr-logo">${orbSvg(34)}</span>`}</div>
-      <figcaption><span class="cm-hint">${ri('qr-scan-2-line')}${esc(x.hint)}</span>${live ? '' : `<span class="cm-note">${esc(c.soon)}</span>`}<span class="cm-note cm-mobile">${esc(c.mobile)}</span></figcaption>
+      <div class="qr${live ? '' : ' qr-temp'}" role="img" aria-label="${esc(live ? c.qrAlt(x.name) : `${c.qrAlt(x.name)} · ${c.soonNote}`)}">${code}${ch.logo === false ? '' : `<span class="qr-logo">${orbSvg(34)}</span>`}</div>
+      <figcaption>${live
+        ? `<span class="cm-hint">${ri('qr-scan-2-line')}${esc(x.hint)}</span><span class="cm-note cm-mobile">${esc(c.mobile)}</span>`
+        : `<span class="cm-hint">${ri('time-line')}${esc(c.soon)}</span><span class="cm-note">${esc(c.soonNote)}</span>`}</figcaption>
     </figure>
   </article>`;
   };
