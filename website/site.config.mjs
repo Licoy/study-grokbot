@@ -11,6 +11,7 @@ export default {
   base,           // path prefix, ends with "/"
   repo: 'https://github.com/Licoy/study-grokbot',
   twitter: '@licoycn', // twitter:site / twitter:creator
+  x: 'https://x.com/licoycn',
   langs: ['en', 'zh'],          // first = default language at site root
   author: 'Study GrokBot community',
   // 首页 / 指南页顺序

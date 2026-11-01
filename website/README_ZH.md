@@ -27,7 +27,8 @@ npm run new -- "中文主题" "English topic" 2026-11-02   # 同时新建中英�
 - **内容**：`issues/{en,zh}/*.md`、`guide/{en,zh}/*.md`，同名文件互为译文，自动生成 hreflang。
 - **界面文案**：`lib/i18n.mjs`。每个页面只用自己的语言；语言菜单显示各语言的原名（English / 简体中文）。
 - **最新一期**：站内的“最新一期”链接直接指向当期文章（`build.mjs` 写入 `site.latest`，`lib/templates.mjs` 的 `latestHref()`）。`/latest/`、`/zh/latest/` 只留给站外链接：用站点样式渲染、`noindex`，有 JS 时立即跳到当期（没有 JS 时用 meta refresh），canonical 指向当期。
-- **顶栏菜单**：语言和主题都是“图标 + 下拉菜单”（`lib/templates.mjs` 的 `dropdown()`，键盘操作在 `assets/main.js`）。桌面端显示图标和文字，760px 及以下只显示图标按钮。
+- **顶栏菜单**：语言和主题都是“图标 + 下拉菜单”（`lib/templates.mjs` 的 `dropdown()`，键盘操作在 `assets/main.js`）。按钮只显示图标（文字放在 `aria-label` / `title`），菜单项显示完整文字。GitHub 和 X（`site.x`）作为图标按钮放在它们旁边，760px 及以下收进移动端菜单。
+- **期刊阅读**：正文居中，右侧是本期目录，左侧是一列圆形图标按钮组成的阅读工具条，固定在屏幕竖直居中处、页脚出现时淡出（`build.mjs` 的 `readTools()`，交互在 `assets/main.js`）：沉浸式阅读（Esc 退出）、放大 / 缩小字号（存在 `localStorage` 的 `sg-fs`，由 `<head>` 脚本在首屏前恢复）、复制链接、Markdown 原文、回到顶部 / 跳到底部；960px 及以下隐藏。底部有上一期 / 下一期卡片，没有时显示灰色的“已经是第一期 / 最新一期了”。
 - **首次访问**：浏览器首选中文时跳到对应的 `/zh/` 页面。选择保存在 `localStorage.sg-lang`，手动切换优先；爬虫不跳转。
 - **主题**：自动 / 浅色 / 深色，保存在 `localStorage.sg-theme`，首屏绘制前生效。
 - **字体**：用各系统最适合阅读的界面无衬线字体（中文：苹方 / 微软雅黑 / Noto Sans CJK；英文：San Francisco / Segoe UI / Roboto），定义在 `assets/style.css` 的 `--font-zh` / `--font-en`。网站页面不加载任何网络字体。

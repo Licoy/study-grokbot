@@ -19,7 +19,7 @@
   --bubble:#ecebe6;--code-bg:#f1efeb;--chip:#ecebe6;--grad:linear-gradient(100deg,#ff8a3d 0%,#ea580c 50%,#b23c08 100%);
   --glow:rgba(255,106,8,.14);color-scheme:light;
   /* ---- 尺寸 / sizes ---- */
-  --radius-lg:28px;--radius:20px;--radius-sm:12px;--content:64rem;--header-h:64px;--ease:cubic-bezier(.22,1,.36,1);
+  --radius-lg:28px;--radius:20px;--radius-sm:12px;--content:1280px;--header-h:64px;--ease:cubic-bezier(.22,1,.36,1);
 }
 :lang(en){--font:var(--font-en);--track-display:-.022em}
 :lang(zh){--font:var(--font-zh);--track-display:0}
@@ -83,10 +83,9 @@ img,svg{display:block;max-width:100%}
 .mark{display:block;flex:none;width:30px;height:30px}
 .mark .orb-svg{width:30px;height:30px}
 .nav-links{display:flex;gap:4px;flex:1}
-.nav-links a{font-size:14px;color:var(--muted-2);padding:6px 12px;border-radius:99px;transition:color .15s,background .15s}
+.nav-links a{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted-2);padding:6px 12px;border-radius:99px;transition:color .15s,background .15s}
+.nav-links a .ri{width:16px;height:16px}
 .nav-links a:hover,.nav-links a[aria-current]{color:var(--fg);background:rgb(var(--ink) / .04)}
-.nav-gh{display:inline-flex;align-items:center;gap:6px}
-.nav-gh .ri{width:16px;height:16px}
 .nav-cta{display:flex;gap:8px;align-items:center}
 .nav-toggle{display:none}
 .mobile-menu{display:none}
@@ -292,6 +291,35 @@ img,svg{display:block;max-width:100%}
 .page-hero{padding:112px 0 56px}
 .page-hero .display{font-size:clamp(30px,4.2vw,48px);max-width:20em}
 .doc-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start;max-width:calc(68rem + 48px)}
+/* 期刊详情：左侧阅读工具条，正文居中，目录浮在右侧；中等宽度时左栏先收窄到只放得下工具条 / issue pages: reading tools left, centred prose, TOC floats right; at mid widths the left column shrinks first */
+.doc-layout.toc-right{grid-template-columns:minmax(50px,1fr) minmax(0,46rem) minmax(200px,1fr);column-gap:48px;max-width:calc(var(--content) + 48px)}
+.toc-right > .prose{grid-column:2;grid-row:1}
+.toc-right > .doc-aside{grid-column:3;grid-row:1;max-width:240px}
+/* 阅读工具条（交互见 assets/main.js）：一列独立的圆形图标按钮（和顶栏右上角同款 .btn-icon），固定在视口中间（页头以下的区域），页脚出现时淡出。
+   外层 .read-tools 占左栏、只用来给内层定横向位置：.rt-stack 是 fixed 且不写 left，横向就停在外层所在的位置。
+   A column of separate round icon buttons (same .btn-icon as the header), fixed to the middle of the viewport below the header; fades out when the footer shows.
+   The outer .read-tools sits in the left column only to place it horizontally: .rt-stack is fixed with no left, so it keeps the outer box's x. */
+.toc-right > .read-tools{grid-column:1;grid-row:1;justify-self:end;width:36px}
+.rt-stack{position:fixed;top:calc(50% + var(--header-h) / 2);transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;align-items:center;gap:8px;transition:opacity .25s,visibility .25s}
+.read-tools.rt-off .rt-stack{opacity:0;visibility:hidden}
+.rt-btn{position:relative}
+.rt-btn[aria-pressed=true],.rt-btn[aria-pressed=true]:hover{background:var(--solid-bg);color:var(--solid-fg)}
+.rt-btn:disabled{opacity:.4;cursor:default;background:var(--soft)}
+.rt-btn .ri-check-line,.rt-btn.done .ri-link{display:none}
+.rt-btn.done .ri-check-line{display:block}
+.rt-sep{width:16px;height:1px;margin:2px 0;background:var(--border-2)}
+.rt-btn::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translate(-4px,-50%);white-space:nowrap;padding:5px 9px;border-radius:8px;background:var(--solid-bg);color:var(--solid-fg);font-size:12px;font-weight:400;line-height:1.3;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;z-index:5}
+.rt-btn:hover::after,.rt-btn:focus-visible::after{opacity:1;transform:translate(0,-50%)}
+/* 沉浸式阅读：收起页头、目录和页脚，工具条变淡 / immersive: hide header, TOC and footer; dim the tools */
+[data-immersive]{--header-h:0px}
+[data-immersive] .site-header,[data-immersive] .site-footer,[data-immersive] .toc-right > .doc-aside{display:none}
+[data-immersive] .rt-stack:not(:hover,:focus-within){opacity:.45}
+/* 阅读字号（data-fs 由 <head> 脚本恢复）/ text size (data-fs restored by the <head> script) */
+@media (min-width:961px){
+  [data-fs="-1"] .toc-right > .prose{font-size:15.5px}
+  [data-fs="1"] .toc-right > .prose{font-size:18px}
+  [data-fs="2"] .toc-right > .prose{font-size:19.5px}
+}
 .doc-aside{position:sticky;top:calc(var(--header-h) + 32px);max-height:calc(100vh - var(--header-h) - 64px);overflow:auto;scrollbar-width:none}
 .guide-nav + .toc{margin-top:32px}
 .toc-h{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
@@ -400,6 +428,11 @@ img,svg{display:block;max-width:100%}
 .pager-card.right span{align-self:flex-end}
 .pager-card strong{color:var(--fg);font-weight:500;font-size:15px}
 .pager-card.right{text-align:right}
+.prose a.pager-card{transition:background .2s}
+.prose a.pager-card:hover{background:var(--card-hover)}
+/* 没有上一期 / 下一期时显示灰色占位 / greyed-out placeholder when there is no previous / next issue */
+.prose .pager-card.is-off{background:transparent;border:1px solid var(--border);cursor:default}
+.pager-card.is-off strong{color:var(--muted);font-weight:400}
 
 /* ---------- 页脚 ---------- */
 .site-footer{margin-top:96px;border-top:1px solid var(--border);padding:64px 0 0;font-size:14px}
@@ -424,8 +457,9 @@ img,svg{display:block;max-width:100%}
 
 /* ---------- 响应式 ---------- */
 @media (max-width:960px){
-  .doc-layout{grid-template-columns:minmax(0,1fr);gap:0}
-  .doc-aside{display:none}
+  .doc-layout,.doc-layout.toc-right{grid-template-columns:minmax(0,1fr);gap:0}
+  .toc-right > .prose{grid-column:auto}
+  .doc-aside,.toc-right > .read-tools{display:none}
   .prose{width:100%;justify-self:center}
   .faq-wrap{grid-template-columns:1fr;gap:28px}
   .faq-intro{position:static}
@@ -489,14 +523,10 @@ img,svg{display:block;max-width:100%}
 }
 
 /* ---------- 语言 / 颜色模式下拉菜单 ---------- */
-/* PC 端按钮是“图标 + 文字 + 箭头”，移动端只留图标 / icon + label + caret on desktop, icon only on mobile */
+/* 按钮只显示图标，菜单项显示完整文字 / icon-only trigger, full labels in the menu */
 .dd{position:relative}
-.dd-btn{gap:7px;padding-right:10px}
-.dd-btn .ri{width:16px;height:16px}
-.dd-caret{display:inline-flex;margin-left:-2px;color:var(--muted);transition:transform .2s}
-.dd-caret .ri{width:15px;height:15px}
-.dd.open .dd-caret{transform:rotate(180deg)}
-.dd-val{display:none;align-items:center;gap:7px}
+.dd-btn .ri{width:18px;height:18px}
+.dd-val{display:none}
 [data-theme-pref=auto] .dd-val[data-for=auto],[data-theme-pref=light] .dd-val[data-for=light],[data-theme-pref=dark] .dd-val[data-for=dark],
 html:not([data-theme-pref]) .dd-val[data-for=auto]{display:inline-flex}
 .dd-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:60;min-width:172px;padding:6px;border-radius:16px;background:var(--bg);border:1px solid var(--border);box-shadow:0 12px 40px -12px rgb(0 0 0 / .22),0 2px 6px rgb(0 0 0 / .05);transform-origin:top right;animation:dd-in .16s cubic-bezier(.2,.8,.2,1)}
@@ -509,11 +539,6 @@ html:not([data-theme-pref]) .dd-val[data-for=auto]{display:inline-flex}
 .dd-check .ri{color:var(--fg)}
 .dd-menu [aria-checked=true]{color:var(--fg);font-weight:500}
 .dd-menu [aria-checked=true] .dd-check{opacity:1}
-@media (max-width:760px){
-  .dd-label,.dd-caret{display:none}
-  .dd-btn{width:36px;height:36px;padding:0;justify-content:center}
-  .dd-val{gap:0}
-}
 @media (prefers-reduced-motion:reduce){.dd-menu{animation:none}}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 

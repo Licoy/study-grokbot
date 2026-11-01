@@ -1,5 +1,5 @@
-// 轻量交互：主题与语言下拉菜单、入场动效、标题逐词动画、移动端菜单、复制提示词、目录高亮、首页 Bot 小队演示、圆球 Bot
-// Theme/language dropdowns, reveal animations, mobile menu, copy buttons, TOC highlight, home Bot-team demo, orb bots.
+// 轻量交互：主题与语言下拉菜单、入场动效、标题逐词动画、移动端菜单、复制提示词、目录高亮、期刊阅读工具、首页 Bot 小队演示、圆球 Bot
+// Theme/language dropdowns, reveal animations, mobile menu, copy buttons, TOC highlight, issue reading tools, home Bot-team demo, orb bots.
 (() => {
   const root = document.documentElement;
   root.classList.add('js');
@@ -115,6 +115,44 @@
       if (e.isIntersecting) { links.forEach((l) => l.classList.remove('active')); map.get(e.target.id)?.classList.add('active'); }
     }), { rootMargin: '-80px 0px -70% 0px' });
     map.forEach((_, id) => { const h = document.getElementById(id); h && io2.observe(h); });
+  }
+
+  // 期刊页阅读工具：沉浸阅读（Esc 退出）、字号（记住选择）、复制链接、回到顶部 / 跳到底部；页脚出现时隐藏
+  // Issue reading tools: immersive mode (Esc exits), text size (remembered), copy link, back to top / jump to bottom; hidden while the footer shows.
+  const tools = document.querySelector('.read-tools');
+  if (tools) {
+    const FS_MIN = -1, FS_MAX = 2;
+    const rt = (k) => tools.querySelector(`[data-rt="${k}"]`);
+    const setFs = (v) => {
+      v = Math.min(FS_MAX, Math.max(FS_MIN, v || 0));
+      if (v) root.setAttribute('data-fs', v); else root.removeAttribute('data-fs');
+      store.set('sg-fs', v ? String(v) : '');
+      rt('smaller').disabled = v === FS_MIN; rt('bigger').disabled = v === FS_MAX;
+    };
+    setFs(+root.getAttribute('data-fs'));
+    const immersive = (on) => { root.toggleAttribute('data-immersive', on); rt('immersive').setAttribute('aria-pressed', String(on)); };
+    tools.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-rt]');
+      if (!b) return;
+      const k = b.dataset.rt, behavior = reduce ? 'auto' : 'smooth';
+      if (k === 'immersive') immersive(!root.hasAttribute('data-immersive'));
+      else if (k === 'bigger' || k === 'smaller') setFs(+root.getAttribute('data-fs') + (k === 'bigger' ? 1 : -1));
+      else if (k === 'top') scrollTo({ top: 0, behavior });
+      else if (k === 'bottom') scrollTo({ top: root.scrollHeight, behavior });
+      else if (k === 'copy') {
+        const url = document.querySelector('link[rel="canonical"]')?.href || location.href;
+        try { await navigator.clipboard.writeText(url); } catch { return; }
+        const tip = b.dataset.label || (b.dataset.label = b.dataset.tip);
+        b.dataset.tip = b.dataset.done; b.classList.add('done');
+        setTimeout(() => { b.dataset.tip = tip; b.classList.remove('done'); }, 1600);
+      }
+    });
+    // 页脚进入视口时淡出，免得压在页脚上 / fade out once the footer is on screen so the buttons never sit on top of it
+    const foot = document.querySelector('.site-footer');
+    if (foot && 'IntersectionObserver' in window) new IntersectionObserver(([e]) => tools.classList.toggle('rt-off', e.isIntersecting)).observe(foot);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && root.hasAttribute('data-immersive') && !e.target.closest?.('.dd.open')) immersive(false);
+    });
   }
 
   // 首页 Bot 小队演示：每个 Bot 一段对话 + 一个群聊。进入视口后消息逐条载入（Bot 先“正在输入”，你的消息先在输入框里打出来再发送），

@@ -107,6 +107,24 @@ const tocHtml = (toc, t, label = t.toc) => toc.length
 
 
 
+// 期刊详情左侧的阅读工具条：沉浸阅读、字号、复制链接、Markdown 原文、回到顶部 / 跳到底部（交互见 assets/main.js）
+// Reading tools on the left of issue pages: immersive mode, text size, copy link, Markdown source, top / bottom (behaviour in assets/main.js).
+function readTools(t, md) {
+  const r = t.reader;
+  const b = (attr, ic, label, extra = '') => `<button class="btn btn-soft btn-icon rt-btn" type="button" ${attr} aria-label="${esc(label)}" data-tip="${esc(label)}">${ri(ic)}${extra}</button>`;
+  return `<div class="read-tools" role="group" aria-label="${esc(r.label)}"><div class="rt-stack">
+    ${b('data-rt="immersive" aria-pressed="false"', 'book-read-line', r.immersive)}
+    ${b('data-rt="bigger"', 'zoom-in-line', r.bigger)}
+    ${b('data-rt="smaller"', 'zoom-out-line', r.smaller)}
+    <span class="rt-sep" aria-hidden="true"></span>
+    ${b(`data-rt="copy" data-done="${esc(r.copied)}"`, 'link', r.copy, ri('check-line'))}
+    <a class="btn btn-soft btn-icon rt-btn" href="${md}" aria-label="${esc(r.markdown)}" data-tip="${esc(r.markdown)}">${ri('markdown-line')}</a>
+    <span class="rt-sep" aria-hidden="true"></span>
+    ${b('data-rt="top"', 'arrow-up-line', r.top)}
+    ${b('data-rt="bottom"', 'arrow-down-line', r.bottom)}
+  </div></div>`;
+}
+
 function issuePage(it, prev, next, pairs) {
   const { lang } = it; const t = dict[lang];
   const p = `issues/${it.slug}/`;
@@ -123,15 +141,18 @@ function issuePage(it, prev, next, pairs) {
     <div class="reveal">${tagList(it.tags)}</div>
   </div>
 </section>
-<div class="container doc-layout">
+<div class="container doc-layout toc-right">
+  ${readTools(t, `${rel(lang)}issues/${it.slug}.md`)}
   <aside class="doc-aside">${tocHtml(toc, t)}</aside>
   <article class="prose">
     ${tldr}
     ${it.html}
     ${qa}
-    <nav class="pager">
-      ${next ? `<a class="pager-card" href="${rel(lang, `issues/${next.slug}/`)}"><span>${icon.left}${t.older}</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
-      ${prev ? `<a class="pager-card right" href="${rel(lang, `issues/${prev.slug}/`)}"><span>${t.newer}${icon.right}</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
+    <nav class="pager" aria-label="${esc(t.pagerLabel)}">
+      ${next ? `<a class="pager-card" href="${rel(lang, `issues/${next.slug}/`)}"><span>${icon.left}${t.older}</span><strong>${esc(next.title)}</strong></a>`
+        : `<div class="pager-card is-off" aria-disabled="true"><span>${icon.left}${t.older}</span><strong>${esc(t.firstIssue)}</strong></div>`}
+      ${prev ? `<a class="pager-card right" href="${rel(lang, `issues/${prev.slug}/`)}"><span>${t.newer}${icon.right}</span><strong>${esc(prev.title)}</strong></a>`
+        : `<div class="pager-card right is-off" aria-disabled="true"><span>${t.newer}${icon.right}</span><strong>${esc(t.latestIssue)}</strong></div>`}
     </nav>
   </article>
 </div>`;

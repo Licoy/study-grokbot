@@ -15,13 +15,13 @@ export const icon = {
   right: ri('arrow-right-line'),
   left: ri('arrow-left-line'),
   github: ri('github-fill'),
+  x: ri('twitter-x-fill'),
   menu: ri('menu-line'),
   rss: ri('rss-line'),
   auto: ri('contrast-2-line'),
   sun: ri('sun-line'),
   moon: ri('moon-line'),
   lang: ri('translate-2'),
-  caret: ri('arrow-down-s-line'),
   check: ri('check-line'),
 };
 
@@ -31,31 +31,31 @@ const mark = () => `<span class="mark" data-orb>${orbSvg(30)}</span>`;
 
 const BOT_RE = 'bot|crawl|spider|slurp|bingpreview|mediapartners|facebookexternalhit|embedly|quora link preview|pinterest|vkshare|w3c_validator|whatsapp|telegram|discord|skype|slack|lighthouse|pagespeed|gptbot|chatgpt|oai-searchbot|claude|anthropic|perplexity|ccbot|bytespider|amazonbot|applebot|duckassist|cohere|google-extended|yandex|baidu|sogou|360spider';
 
-// 渲染在 <head> 最前面：主题（防闪烁）+ 首次访问语言跳转
-// Runs first in <head>: theme (no flash) + first-visit language redirect.
+// 渲染在 <head> 最前面：主题（防闪烁）+ 期刊页阅读字号 + 首次访问语言跳转
+// Runs first in <head>: theme (no flash) + issue-page text size + first-visit language redirect.
 function headScript({ zhPath }) {
-  return `<script>(function(){var d=document.documentElement;d.classList.add('js');var p='auto';try{p=localStorage.getItem('sg-theme')||'auto'}catch(e){}var dk=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);d.setAttribute('data-theme',dk?'dark':'light');d.setAttribute('data-theme-pref',p);${
+  return `<script>(function(){var d=document.documentElement;d.classList.add('js');var p='auto';try{p=localStorage.getItem('sg-theme')||'auto'}catch(e){}var dk=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);d.setAttribute('data-theme',dk?'dark':'light');d.setAttribute('data-theme-pref',p);try{var f=localStorage.getItem('sg-fs');if(f)d.setAttribute('data-fs',f)}catch(e){}${
     zhPath
       ? `try{var s=localStorage.getItem('sg-lang');if(!s){if(/${BOT_RE}/i.test(navigator.userAgent||''))return;var l=(navigator.languages&&navigator.languages[0])||navigator.language||'';s=/^zh(-|$)/i.test(l)?'zh':'en';localStorage.setItem('sg-lang',s)}if(s==='zh'){d.setAttribute('data-nav','');location.replace(${JSON.stringify(zhPath)}+location.search+location.hash)}}catch(e){}`
       : ''
   }})();</script>`;
 }
 
-// 下拉菜单：PC 端按钮显示“图标 + 文字”，移动端只显示图标（CSS 控制）；开合与键盘操作见 assets/main.js
-// Dropdowns: icon + label on desktop, icon only on mobile (CSS); open/close and keyboard handling in assets/main.js.
+// 下拉菜单：按钮只显示图标（文字在 aria-label / title 里），菜单项显示完整文字；开合与键盘操作见 assets/main.js
+// Dropdowns: icon-only trigger (label in aria-label / title), full labels in the menu; open/close and keyboard handling in assets/main.js.
 const dropdown = (cls, label, trigger, items) =>
-  `<div class="dd ${cls}"><button class="btn btn-soft btn-sm dd-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(label)}" title="${esc(label)}">${trigger}<span class="dd-caret">${icon.caret}</span></button><div class="dd-menu" role="menu" aria-label="${esc(label)}" hidden>${items}</div></div>`;
+  `<div class="dd ${cls}"><button class="btn btn-soft btn-icon dd-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(label)}" title="${esc(label)}">${trigger}</button><div class="dd-menu" role="menu" aria-label="${esc(label)}" hidden>${items}</div></div>`;
 const THEME_ICON = { auto: 'auto', light: 'sun', dark: 'moon' };
 // 按钮上同时放三种状态，由 <html data-theme-pref> 决定显示哪个，首屏就正确、不闪 / all three states in the button; <html data-theme-pref> picks one, so first paint is right
 function themeMenu(t) {
   const keys = ['auto', 'light', 'dark'];
   return dropdown('dd-theme', t.theme.label,
-    keys.map((k) => `<span class="dd-val" data-for="${k}">${icon[THEME_ICON[k]]}<span class="dd-label">${esc(t.theme[k])}</span></span>`).join(''),
+    keys.map((k) => `<span class="dd-val" data-for="${k}">${icon[THEME_ICON[k]]}</span>`).join(''),
     keys.map((k) => `<button type="button" role="menuitemradio" aria-checked="false" data-theme-set="${k}">${icon[THEME_ICON[k]]}<span>${esc(t.theme[k])}</span><span class="dd-check">${icon.check}</span></button>`).join(''));
 }
 function langMenu(lang, langs, page, b, t) {
   return dropdown('dd-lang', t.langLabel,
-    `${icon.lang}<span class="dd-label">${esc(LANGS[lang].label)}</span>`,
+    icon.lang,
     langs.map((l) => `<a role="menuitemradio" aria-checked="${l === lang}" href="${page.altPaths[l] || b + LANGS[l].prefix}" hreflang="${LANGS[l].hreflang}" lang="${LANGS[l].htmlLang}" data-set-lang="${l}"><span>${esc(LANGS[l].label)}</span><span class="dd-check">${icon.check}</span></a>`).join(''));
 }
 
@@ -128,13 +128,13 @@ ${head}
   <nav class="nav container" aria-label="Main">
     <a class="brand" href="${root}" aria-label="${esc(site.title)}">${mark()}<span>${esc(site.title)}</span></a>
     <div class="nav-links">
-      ${nav.map(([k, x, h]) => `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${x}</a>`).join('')}
-      <a class="nav-gh" href="${site.repo}" target="_blank" rel="noopener">${icon.github}<span>${t.nav.github}</span></a>
+      ${nav.map(([k, x, h, ic]) => `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${ri(ic)}<span>${x}</span></a>`).join('')}
     </div>
     <div class="nav-cta">
       ${langMenu(lang, site.langs, page, b, t)}
       ${themeMenu(t)}
-      <a class="btn btn-solid btn-sm hide-xs" href="${latest}">${esc(t.latest)}</a>
+      <a class="btn btn-soft btn-icon hide-sm" href="${site.repo}" target="_blank" rel="noopener" aria-label="${t.nav.github}" title="${t.nav.github}">${icon.github}</a>
+      <a class="btn btn-soft btn-icon hide-sm" href="${site.x}" target="_blank" rel="noopener" aria-label="${t.nav.x}" title="${t.nav.x}">${icon.x}</a>
       <button class="btn btn-soft btn-icon nav-toggle" type="button" aria-label="${esc(t.menu)}" aria-expanded="false">${icon.menu}</button>
     </div>
   </nav>
@@ -142,6 +142,7 @@ ${head}
     ${nav.map(([, x, h, ic]) => `<a href="${h}">${ri(ic)}<span>${x}</span></a>`).join('')}
     <a href="${latest}">${ri('sparkling-line')}<span>${esc(t.latest)}</span></a>
     <a href="${site.repo}" target="_blank" rel="noopener">${icon.github}<span>${t.nav.github}</span>${icon.arrow}</a>
+    <a href="${site.x}" target="_blank" rel="noopener">${icon.x}<span>${t.nav.x}</span>${icon.arrow}</a>
   </div>
 </header>
 <main id="main">
