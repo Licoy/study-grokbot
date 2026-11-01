@@ -47,6 +47,7 @@ export function layout(ctx) {
   const nav = [['home', t.nav.home, root], ['archive', t.nav.archive, `${root}archive/`], ['guide', t.nav.guide, `${root}guide/`]];
   const zhPath = lang === 'en' && page.altPaths.zh ? page.altPaths.zh : '';
   const ogImg = page.image;
+  const ogAlt = page.imageAlt || page.title || site.title;
   const head = [
     `<meta charset="utf-8">`,
     headScript({ zhPath }),
@@ -68,14 +69,18 @@ export function layout(ctx) {
     `<meta property="og:locale" content="${L.ogLocale}">`,
     page.alternates[other] ? `<meta property="og:locale:alternate" content="${LANGS[other].ogLocale}">` : '',
     `<meta property="og:image" content="${ogImg}">`,
+    `<meta property="og:image:secure_url" content="${ogImg}">`,
+    `<meta property="og:image:type" content="image/png">`,
     `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`,
-    `<meta property="og:image:alt" content="${esc(page.title || site.title)}">`,
+    `<meta property="og:image:alt" content="${esc(ogAlt)}">`,
     page.published ? `<meta property="article:published_time" content="${page.published}T08:00:00+09:00">` : '',
     ...(page.tags || []).map((x) => `<meta property="article:tag" content="${esc(x)}">`),
     `<meta name="twitter:card" content="summary_large_image">`,
+    site.twitter ? `<meta name="twitter:site" content="${esc(site.twitter)}"><meta name="twitter:creator" content="${esc(site.twitter)}">` : '',
     `<meta name="twitter:title" content="${esc(page.title || fullTitle)}">`,
     `<meta name="twitter:description" content="${esc(desc)}">`,
     `<meta name="twitter:image" content="${ogImg}">`,
+    `<meta name="twitter:image:alt" content="${esc(ogAlt)}">`,
     `<link rel="icon" href="${b}assets/favicon.svg" type="image/svg+xml">`,
     `<link rel="alternate" type="application/rss+xml" title="${esc(site.title)} (${L.label})" href="${root}feed.xml">`,
     page.markdown ? `<link rel="alternate" type="text/markdown" title="Markdown" href="${page.markdown}">` : '',
@@ -132,7 +137,6 @@ export function footer(site, lang, t) {
       <div class="footer-brand">
         <a class="brand" href="${root}">${mark}<span>${esc(site.title)}</span></a>
         <p>${esc(t.description)}</p>
-        <p class="alt" lang="${lang === 'en' ? 'zh-Hans' : 'en'}">${esc(t.descriptionAlt)}</p>
       </div>
       <div class="footer-cols">
         <div><h2>${f.content}</h2><a href="${root}latest/">${f.latest}</a><a href="${root}archive/">${f.archive}</a><a href="${root}feed.xml">${f.rss}</a></div>
@@ -142,7 +146,6 @@ export function footer(site, lang, t) {
     </div>
     <div class="disclaimer" role="note">
       <p><strong>${f.noticeLabel}</strong> ${esc(f.notice)}</p>
-      <p class="alt" lang="${lang === 'en' ? 'zh-Hans' : 'en'}">${esc(f.noticeAlt)}</p>
       <p class="repo-line">${icon.github}<a href="${site.repo}" target="_blank" rel="noopener">${site.repo.replace('https://', '')}</a><span>${esc(f.repoNote)}</span></p>
     </div>
   </div>
@@ -154,7 +157,7 @@ export const tagList = (tags = []) =>
 
 export function issueRow(href, it, t) {
   return `<a class="issue-row reveal" href="${href}">
-  <span class="ir-no">No.${String(it.no).padStart(3, '0')}</span>
+  <span class="ir-no">${esc(t.noLabel(it.no))}</span>
   <span class="ir-main"><span class="ir-title">${esc(it.title)}</span><span class="ir-sum">${esc(it.summary)}</span></span>
   <time class="ir-date" datetime="${it.date}">${it.date}</time>
   <span class="ir-go" aria-hidden="true">${icon.right}</span>

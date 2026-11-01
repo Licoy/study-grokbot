@@ -4,12 +4,14 @@
   "description": "Study GrokBot static site (unofficial community project) / 非官方社区学习站",
   "scripts": {
     "build": "node build.mjs",
+    "font": "node scripts/fetch-font.mjs",
     "og": "node scripts/og.mjs",
-    "build:full": "node build.mjs && node scripts/og.mjs",
+    "build:full": "node build.mjs && node scripts/fetch-font.mjs && node scripts/og.mjs && node build.mjs",
     "check": "node scripts/validate.mjs",
     "dev": "node serve.mjs",
     "preview": "node serve.mjs --no-watch",
-    "new": "node scripts/new-issue.mjs"
+    "new": "node scripts/new-issue.mjs",
+    "readme": "node scripts/readme-issues.mjs"
   },
   "license": "MIT",
   "type": "module",

@@ -1,96 +1,109 @@
-# Study GrokBot · 网站 / website
+English | [简体中文](README_ZH.md)
 
-> 非官方社区项目，与 SpaceXAI / xAI 及 Grok Bot 官方无任何关联。
-> Unofficial community project, not affiliated with SpaceXAI / xAI.
+# Study GrokBot · Website
 
-零框架静态站：Markdown → HTML，运行时依赖只有 `marked` + `gray-matter`。英文为默认语言（站点根目录），简体中文在 `/zh/`。
-No-framework static site. English is the default language at the root; Simplified Chinese lives under `/zh/`.
+A static site with no framework: Markdown in, HTML out. The only runtime dependencies are `marked` and `gray-matter`. English is the default language at the site root; Simplified Chinese lives under `/zh/`. Each language version shows only that language.
 
-## 常用命令 / commands
+Live site: **https://studygrokbot.com/**. `study-grokbot.com` 301-redirects to it.
+
+## Commands
 
 ```bash
 npm install
-npm run dev        # 构建 + 本地预览 http://localhost:4173（改文件自动重建）
-npm run build      # 输出到 dist/
-npm run og         # 把 dist/og/*.svg 渲染成 PNG（需要 Playwright Chromium：npx playwright install chromium）
-npm run check      # 校验：内部链接/锚点、JSON-LD、hreflang、canonical、sitemap、无 Google Fonts 引用
-npm run new -- "GrokBot的Routines入门" "Getting started with Routines" 2026-11-02   # 同时新建中英两份（draft: true）
+npm run dev          # build + local preview at http://localhost:4173 (rebuilds on change)
+npm run build        # output to dist/
+npm run font         # download Source Han Serif SC to ~/.cache/study-grokbot/fonts/ (share images only)
+npm run og           # render the share images (needs Playwright Chromium: npx playwright install chromium)
+npm run build:full   # build → font → og → build
+npm run check        # links, anchors, JSON-LD, hreflang, canonical, sitemap, share-card meta, image sizes, no web fonts
+npm run readme       # refresh the issue tables in README.md / README_ZH.md
+npm run new -- "<Chinese topic>" "English topic" 2026-11-02   # scaffold a new issue in both languages (draft: true)
 ```
 
-线上地址 / Live site: **https://studygrokbot.com/**（`site.config.mjs` 默认值，`base` = `/`；`study-grokbot.com` 在注册商处 301 到主域名）。
-`public/` 下的文件（如 `CNAME`）会原样复制到 `dist/` 根目录。本地预览时 `serve.mjs` 会临时改用 `SITE_URL=http://localhost:4173/`。
+`site.config.mjs` holds the site URL (`SITE_URL`, default `https://studygrokbot.com/`) and base path (`BASE_PATH`, default `/`). Files in `public/` (such as `CNAME`) are copied to the root of `dist/`.
 
-## 语言、主题、字体 / i18n, theme, fonts
+## Languages, theme and fonts
 
-- 内容：`issues/en/*.md`、`issues/zh/*.md`、`guide/en/*.md`、`guide/zh/*.md`，同名文件互为译文（自动生成 hreflang）。
-- 界面文案：`lib/i18n.mjs`。
-- 首次访问：浏览器首选语言为 zh / zh-CN / zh-TW / zh-HK / zh-SG 时跳到 `/zh/` 对应页面；英文等其他语言留在英文页。
-  选择保存在 `localStorage.sg-lang`，手动点语言切换按钮后以手动选择为准；爬虫 UA 不跳转。
-- 主题：自动 / 浅色 / 深色，默认自动（跟随系统），保存在 `localStorage.sg-theme`，`<head>` 内联脚本在首屏绘制前应用。
-- 字体：只用设备上已安装的字体，不加载任何网络字体。中文优先宋体（Songti SC、STSong、Noto Serif CJK SC、Source Han Serif、SimSun…），英文优先 Iowan Old Style / Palatino / Georgia，再回落到中文宋体。
+- **Content**: `issues/{en,zh}/*.md` and `guide/{en,zh}/*.md`. Files with the same name are translations of each other and get hreflang links automatically.
+- **UI strings**: `lib/i18n.mjs`. Every page uses only its own language; the language switcher shows native names (English / 简体中文).
+- **First visit**: browsers that prefer Chinese are sent to the matching `/zh/` page. The choice is saved in `localStorage.sg-lang`, a manual switch always wins, and crawlers are never redirected.
+- **Theme**: auto / light / dark, saved in `localStorage.sg-theme` and applied before first paint.
+- **Fonts**: system serif fonts only. Site pages load no web fonts.
 
-## 每天发一期 / publishing an issue
+## Share images (Open Graph / X cards)
 
-1. `npm run new -- "中文主题" "English topic" YYYY-MM-DD`，会生成 `issues/zh/DATE.md` 和 `issues/en/DATE.md`：
+- One site image per language (`og/site-en.png`, `og/site-zh.png`) and one per issue per language (`og/issue-DATE-en.png`, `og/issue-DATE-zh.png`). Each is a 1200×630 PNG, aiming for under 300 KB, with text in that language only.
+- They are rendered at build time with **Source Han Serif SC** (OFL) from [Adobe's official release](https://github.com/adobe-fonts/source-han-serif/releases). The font is never committed: locally it is cached in `~/.cache/study-grokbot/fonts/source-han-serif-<version>/` (override with `OG_FONT_DIR`), and CI caches it with `actions/cache`, keyed on `SHS_VERSION`.
+- `npm run og` fails if the font is missing, and checks with the Chrome DevTools Protocol (`CSS.getPlatformFontsForNode`) that every piece of text actually used Source Han Serif.
+- All content sits inside a central safe area, because X crops to about 1.91:1 and some clients to 2:1.
+- Meta tags: absolute `og:image`, `og:image:type/width/height/alt`, `og:locale` and `og:locale:alternate`, `twitter:card=summary_large_image`, `twitter:image:alt` and `twitter:site`/`twitter:creator` (from `twitter` in `site.config.mjs`).
+
+## Publishing an issue
+
+1. Run `npm run new -- "<Chinese topic>" "English topic" YYYY-MM-DD`. It creates `issues/zh/DATE.md` and `issues/en/DATE.md`:
 
    ```yaml
    ---
-   title: 《2026-11-02期：……》
+   title: "Issue 2026-11-02: ..."
    date: 2026-11-02
-   summary: 一句话简介（同时用作 meta description）
-   tags: [标签1, 标签2]
+   summary: One-line summary (also the meta description)
+   tags: [tag-one, tag-two]
    issue: 2
-   lang: zh
-   draft: true       # 草稿不会发布；DRAFTS=1 npm run dev 可预览
-   tldr:             # 「本期要点」框，显示在正文顶部（GEO：便于 AI 摘要引用）
-     - 要点一
-   qa:               # 「快问快答」，显示在文末（h3 问题 + 回答）
-     - q: 问题？
-       a: 回答。
+   lang: en
+   draft: true       # drafts are not published; preview with DRAFTS=1 npm run dev
+   tldr:             # "Key takeaways" box at the top
+     - First takeaway
+   qa:               # "Quick answers" at the end
+     - q: A question?
+       a: The answer.
    ---
    ```
 
-2. 正文是普通 Markdown，标题可写固定锚点：`## 本期导读 {#intro}`；`{{root}}` 会替换成当前语言的站点根路径。
-3. 额外支持的容器（`::: 类型 参数` … `:::`）：
+2. Write the body in Markdown. Headings can carry fixed anchors (`## Intro {#intro}`), and `{{root}}` expands to the current language's root path.
+3. Set `draft: false`, run `npm run readme`, and push.
 
-| 容器 | 用途 | 写法 |
+Extra containers (`::: type args` … `:::`):
+
+| Container | Use | Body |
 | --- | --- | --- |
-| `callout 标题` | 重点提示 | 正文 Markdown |
-| `prompt [标签]` | 可复制的示例提示词 | 原样文本 |
-| `proscons` | 适合/不适合 | `#### 标题` + 列表，两组 |
-| `props` | 键值说明 | `- 键: 值` |
-| `steps` | 步骤 | `- 标题 \| 说明` |
-| `quote @作者 \| 日期 \| 链接` | 社区引用 | 引文；英文版可在 `---` 后写译文 |
-| `links` | 链接卡片 | `- [标题](url) \| 站点 \| 日期` |
-| `flow` | 简单流程图 | 节点 `- 名称 \| 说明 \| person/terminal`，`---` 后写连线说明 |
+| `callout Title` | highlighted note | Markdown |
+| `prompt [label]` | copyable example prompt | plain text |
+| `proscons` | good fit / not a fit | two `#### Heading` + list groups |
+| `props` | key/value list | `- key: value` |
+| `steps` | numbered steps | `- Title \| description` |
+| `quote @author \| date \| url` | community quote | the quote; for a post in another language, write the original, then `---`, then the translation. Only the translation is shown. |
+| `links` | link cards | `- [Title](url) \| site \| date` |
+| `flow` | simple flow diagram | nodes `- Name \| note \| person/terminal`, edges after `---` |
 
-## SEO / GEO 产物
+## SEO / GEO output
 
-| 文件 | 说明 |
+| Output | Notes |
 | --- | --- |
-| 每页 `<head>` | title、description、canonical、hreflang（en / zh-Hans / x-default）、Open Graph、Twitter 卡片、JSON-LD |
-| JSON-LD | WebSite、Organization（社区项目）、BlogPosting（期刊）、TechArticle（指南）、CollectionPage（往期）、BreadcrumbList、FAQPage（首页 FAQ） |
-| `sitemap.xml` | 带 `xhtml:link` 语言互链 |
-| `robots.txt` | 允许所有爬虫（含常见 AI 爬虫），指向 sitemap |
-| `feed.xml`、`zh/feed.xml` | 各语言 RSS |
-| `llms.txt`、`llms-full.txt` | 给大模型的站点摘要 / 全文（双语） |
-| `issues/DATE.md`、`zh/issues/DATE.md` | 每期纯 Markdown 原文（页面用 `<link rel="alternate" type="text/markdown">` 指向） |
-| `og/*.png` | 自制分享图（`npm run og` 由 SVG 渲染） |
+| `<head>` | title, description, canonical, hreflang (en / zh-Hans / x-default), Open Graph, X card, JSON-LD |
+| JSON-LD | WebSite, Organization, BlogPosting, TechArticle, CollectionPage, BreadcrumbList, FAQPage |
+| `sitemap.xml` | with `xhtml:link` language alternates |
+| `robots.txt` | allows all crawlers, including AI crawlers |
+| `feed.xml`, `zh/feed.xml` | RSS per language |
+| `llms.txt`, `llms-full.txt`, `zh/llms.txt`, `zh/llms-full.txt` | LLM-friendly summary and full text, one set per language |
+| `issues/DATE.md`, `zh/issues/DATE.md` | raw Markdown of each issue |
+| `404.html`, `zh/404.html` | per-language 404 (missing `/zh/` URLs show the Chinese page) |
+| `og/*.png` | share images |
 
-> 站点部署在域名根目录（studygrokbot.com），所以 `robots.txt`、`llms.txt`、`sitemap.xml` 都会被爬虫直接识别；
-> 也可以在 Google Search Console / Bing Webmaster 手动提交 sitemap：https://studygrokbot.com/sitemap.xml
-
-## 目录 / layout
+## Layout
 
 ```
 website/
-├─ issues/{en,zh}/  每日期刊（Markdown）
-├─ guide/{en,zh}/   指南页（快速上手 / 核心概念 / 常见问题）
-├─ assets/          style.css、main.js、favicon.svg（原样复制到 dist）
-├─ public/          原样复制到 dist 根目录（CNAME 等）
-├─ lib/             markdown.mjs（渲染 + 容器 + 纯 Markdown 导出）、templates.mjs（页面模板 + SEO head）、i18n.mjs（文案）、og.mjs（分享图 SVG）
-├─ scripts/         new-issue.mjs、og.mjs、validate.mjs
-├─ site.config.mjs  站点配置（url / base / 语言）
-├─ build.mjs        构建脚本
-└─ serve.mjs        本地预览服务器
+├─ issues/{en,zh}/  daily issues (Markdown)
+├─ guide/{en,zh}/   guide pages
+├─ assets/          style.css, main.js, favicon.svg
+├─ public/          copied to the dist root (CNAME)
+├─ lib/             markdown, templates, i18n, og (share-card template), og-font (font version and paths)
+├─ scripts/         new-issue, og, fetch-font, readme-issues, validate
+├─ site.config.mjs  site settings
+├─ build.mjs        build script
+└─ serve.mjs        local preview server
 ```
+
+---
+
+Unofficial community project, not affiliated with SpaceXAI / xAI or the official Grok Bot.

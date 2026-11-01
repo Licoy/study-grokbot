@@ -11,6 +11,10 @@ on:
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
+env:
+  # 思源宋体版本（改这里会自动换缓存）/ Source Han Serif release tag (changing it busts the cache)
+  SHS_VERSION: 2.003R
+
 permissions:
   contents: read
   pages: write
@@ -40,10 +44,19 @@ jobs:
           # 主域名 / primary domain（与 site.config.mjs 默认值一致）
           SITE_URL: https://studygrokbot.com/
           BASE_PATH: /
-      # Open Graph 图：SVG → PNG（需要 Chromium + 中文衬线字体，仅在 CI 构建时使用，不影响访客加载）
+      # 分享图（OG / X 卡片）：用思源宋体 SC 渲染 PNG。字体来自 Adobe 官方 Release，按版本缓存；仅构建时使用，网站页面不加载任何 web 字体。
+      # Share cards: rendered with Source Han Serif SC from Adobe's official release, cached per version. Build-time only.
+      - name: Cache Source Han Serif
+        id: font-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/study-grokbot/fonts/source-han-serif-${{ env.SHS_VERSION }}
+          key: source-han-serif-sc-otf-${{ env.SHS_VERSION }}
+      - name: Fetch Source Han Serif
+        if: steps.font-cache.outputs.cache-hit != 'true'
+        run: npm run font
       - name: Render OG images
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra
           npx playwright install --with-deps chromium
           npm run og
       - name: Validate

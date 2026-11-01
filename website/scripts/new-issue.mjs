@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [topicZh = '本期主题', topicEn = 'Topic of this issue', dateArg] = process.argv.slice(2);
-const date = dateArg || new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
+const date = dateArg || new Intl.DateTimeFormat('sv-SE', { timeZone: process.env.ISSUE_TZ || 'Etc/GMT-9' } /* UTC+9 */).format(new Date());
 if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error(`Bad date: ${date}`); process.exit(1); }
 const dirs = { zh: path.join(root, 'issues', 'zh'), en: path.join(root, 'issues', 'en') };
 const files = { zh: path.join(dirs.zh, `${date}.md`), en: path.join(dirs.en, `${date}.md`) };

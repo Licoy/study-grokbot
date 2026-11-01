@@ -10,6 +10,7 @@ export default {
   url,            // absolute, ends with "/"
   base,           // path prefix, ends with "/"
   repo: 'https://github.com/Licoy/study-grokbot',
+  twitter: '@licoycn', // twitter:site / twitter:creator
   langs: ['en', 'zh'],          // first = default language at site root
   author: 'Study GrokBot community',
   // 首页 / 指南页顺序

@@ -70,7 +70,8 @@ export function createRenderer(t) {
       const [who = '', date = '', url = ''] = (arg || '').split('|').map((s) => s.trim());
       const [orig, tr] = splitTranslation(body);
       const link = url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//, ''))}</a>` : '';
-      return `<figure class="quote"><blockquote${tr ? ' lang="zh-Hans"' : ''}>${md.parse(orig)}</blockquote>${tr ? `<div class="q-tr"><span class="q-tr-label">${esc(t.translated)}</span>${md.parse(tr)}</div>` : ''}<figcaption><span class="q-who">${esc(who)}</span>${date ? `<span class="q-dot">·</span><time datetime="${esc(date)}">${esc(date)}</time>` : ''}${link ? `<span class="q-dot">·</span>${link}` : ''}</figcaption></figure>`;
+      // 只显示当前语言：有译文时只放译文，原文请看原帖链接 / show only the page language: the translation replaces the original
+      return `<figure class="quote"><blockquote>${md.parse(tr || orig)}</blockquote><figcaption><span class="q-who">${esc(who)}</span>${date ? `<span class="q-dot">·</span><time datetime="${esc(date)}">${esc(date)}</time>` : ''}${tr ? `<span class="q-dot">·</span><span class="q-tr-note">${esc(t.translated)}</span>` : ''}${link ? `<span class="q-dot">·</span>${link}` : ''}</figcaption></figure>`;
     },
     links: (arg, body) =>
       `<div class="link-cards">${listItems(body).map((l) => {
@@ -127,7 +128,7 @@ export function toPlainMarkdown(src, t, vars = {}) {
       case 'quote': {
         const [who = '', date = '', url = ''] = arg.split('|').map((s) => s.trim());
         const [orig, tr] = splitTranslation(body);
-        return `> ${orig.replace(/\n/g, '\n> ')}${tr ? `\n>\n> *${t.translated}:* ${tr.replace(/\n/g, ' ')}` : ''}\n>\n> ${t.source}: ${who}${date ? `, ${date}` : ''}${url ? `, <${url}>` : ''}`;
+        return `> ${(tr || orig).replace(/\n/g, '\n> ')}\n>\n> ${t.source}: ${who}${date ? `, ${date}` : ''}${tr ? ` (${t.translated})` : ''}${url ? `, <${url}>` : ''}`;
       }
       case 'links': return listItems(body).map((l) => { const [a, site = '', date = ''] = l.split('|').map((s) => s.trim()); return `- ${a}${site ? ` - ${site}` : ''}${date ? `, ${date}` : ''}`; }).join('\n');
       case 'flow': {
