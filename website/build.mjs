@@ -145,7 +145,7 @@ function homePage(lang, issues) {
   const body = `
 <section class="hero">
   <div class="container center">
-    <div class="orb-bot" data-orb aria-hidden="true">${orbSvg()}</div>
+    <div class="orb-bot" data-orb aria-hidden="true" style="width:88px;height:88px;margin:0 auto 20px">${orbSvg(88)}</div>
     ${latest ? `<a class="pill reveal" href="${rel(lang, `issues/${latest.slug}/`)}"><span class="pill-strong">${esc(t.hero.pill(latest.no))}</span><span class="pill-sep hide-xs">•</span><span class="hide-xs">${esc(latest.title.replace(/[《》]/g, ''))}</span><span class="pill-icon">${icon.arrow}</span></a>` : ''}
     <h1 class="display hero-title" data-split>${t.hero.title}</h1>
     <p class="lede reveal">${esc(t.hero.lede)}</p>

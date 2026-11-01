@@ -89,25 +89,30 @@
   // 首页圆球 Bot：眼睛跟随指针（鼠标/触摸），空闲时眨眼、游移；尊重“减少动态效果”
   // Hero orb bot: eyes follow the pointer (mouse/touch); idle blink + drift; honours prefers-reduced-motion.
   const orb = document.querySelector('[data-orb]');
-  const eyes = orb?.querySelector('.orb-eyes');
-  if (orb && eyes) {
+  const eyes = orb?.querySelector('.orb-eyes'), ball = orb?.querySelector('.orb-ball');
+  if (orb && eyes && ball) {
     const rm = matchMedia('(prefers-reduced-motion: reduce)');
-    const MAX_X = 12, MAX_Y = 9; // 眼睛最大偏移（SVG 单位，球体半径 47）/ max eye travel in SVG units
-    let tx = 0, ty = 0, x = 0, y = 0, lastMove = -1e9, raf = 0, visible = true;
+    // 指针方向 → 球体偏移 BALL、眼睛在球上再偏移 EYE（SVG 单位；外环半径 60，球半径 41）
+    // pointer direction → ball shifts up to BALL, eyes shift a further EYE on the ball (SVG units)
+    const BALL = 9, EYE = 10;
+    let tx = -0.35, ty = -0.35, x = tx, y = ty, lastMove = -1e9, raf = 0, visible = true;
     const aim = (cx, cy) => {
       const r = orb.getBoundingClientRect();
       const dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2);
-      const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / (r.width * 2.2)); // 越远看得越“偏”，近处平缓
-      tx = (dx / d) * k * MAX_X; ty = (dy / d) * k * MAX_Y;
+      const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / (r.width * 3));
+      tx = (dx / d) * k; ty = (dy / d) * k;
       lastMove = performance.now();
       if (rm.matches) { x = tx; y = ty; draw(); } else kick();
     };
-    const draw = () => eyes.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+    const draw = () => {
+      ball.setAttribute('transform', `translate(${(x * BALL).toFixed(2)} ${(y * BALL).toFixed(2)})`);
+      eyes.setAttribute('transform', `translate(${(x * EYE).toFixed(2)} ${(y * EYE).toFixed(2)})`);
+    };
     const tick = (now) => {
       raf = 0;
       if (now - lastMove > 2600) { // 空闲：缓慢游移 / idle drift
         const t = now / 1000;
-        tx = Math.sin(t * 0.55) * MAX_X * 0.55; ty = Math.sin(t * 0.37 + 1) * MAX_Y * 0.4;
+        tx = Math.sin(t * 0.55) * 0.5; ty = Math.sin(t * 0.37 + 1) * 0.35 - 0.1;
       }
       x += (tx - x) * 0.14; y += (ty - y) * 0.14;
       draw();

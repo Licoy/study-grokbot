@@ -135,17 +135,15 @@ export function avatarSvg(name, o = {}) {
 }
 
 // 首页 Hero 的圆球 Bot（眼睛跟随鼠标，见 assets/main.js）/ the hero orb bot (eyes follow the pointer, see assets/main.js)
-export function orbSvg() {
-  return `<svg class="orb-svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false">`
-    + `<defs>`
-    + `<radialGradient id="orbRing" cx="50%" cy="38%" r="62%"><stop offset="0" style="stop-color:var(--orb-ring-1)"/><stop offset="1" style="stop-color:var(--orb-ring-2)"/></radialGradient>`
-    + `<radialGradient id="orbBody" cx="36%" cy="28%" r="78%"><stop offset="0" style="stop-color:var(--orb-1)"/><stop offset=".5" style="stop-color:var(--orb-2)"/><stop offset="1" style="stop-color:var(--orb-3)"/></radialGradient>`
-    + `<radialGradient id="orbShine" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
-    + `</defs>`
-    + `<circle class="orb-ring" cx="60" cy="60" r="58" fill="url(#orbRing)"/>`
-    + `<circle cx="60" cy="60" r="47" fill="url(#orbBody)"/>`
-    + `<ellipse cx="44" cy="36" rx="17" ry="10" fill="url(#orbShine)" transform="rotate(-32 44 36)"/>`
-    + `<path d="M101.7 71.2A43 43 0 0 1 71.2 101.7" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2.5" stroke-linecap="round" transform="translate(-6 -6)"/>`
-    + `<g class="orb-eyes"><ellipse class="orb-eye" cx="51" cy="56" rx="5.6" ry="10" fill="#fff"/><ellipse class="orb-eye" cx="69" cy="56" rx="5.6" ry="10" fill="#fff"/></g>`
-    + `</svg>`;
+// 纯黑球体 + 浅灰外环 + 两只倾斜的白色小椭圆眼睛；球体和眼睛都会朝指针方向偏移。
+// Flat black ball + light grey ring + two small tilted white eyes; ball and eyes both shift toward the pointer.
+// 显式 width/height：即使 CSS 没加载也不会被撑大 / explicit width/height so it never blows up without CSS.
+export function orbSvg(size = 88) {
+  return `<svg class="orb-svg" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true" focusable="false" style="max-width:${size}px;max-height:${size}px">`
+    + `<circle class="orb-ring" cx="60" cy="60" r="60" fill="#d4d4d4"/>`
+    + `<g class="orb-ball"><circle class="orb-body" cx="60" cy="60" r="41" fill="#000"/>`
+    + `<g class="orb-eyes">`
+    + `<g transform="rotate(22 49 46)"><ellipse class="orb-eye" cx="49" cy="46" rx="4.6" ry="9.2" fill="#fff"/></g>`
+    + `<g transform="rotate(22 66 41)"><ellipse class="orb-eye" cx="66" cy="41" rx="4.3" ry="8.6" fill="#fff"/></g>`
+    + `</g></g></svg>`;
 }
