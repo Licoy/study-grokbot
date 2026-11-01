@@ -92,10 +92,10 @@
   const eyes = orb?.querySelector('.orb-eyes'), ball = orb?.querySelector('.orb-ball');
   if (orb && eyes && ball) {
     const rm = matchMedia('(prefers-reduced-motion: reduce)');
-    // 指针方向 → 球体偏移 BALL、眼睛在球上再偏移 EYE（SVG 单位；外环半径 60，球半径 41）
-    // pointer direction → ball shifts up to BALL, eyes shift a further EYE on the ball (SVG units)
-    const BALL = 9, EYE = 10;
-    let tx = -0.35, ty = -0.35, x = tx, y = ty, lastMove = -1e9, raf = 0, visible = true;
+    // 静止时眼睛在右上（参考造型）；指针方向 (x,y) 与静止方向 REST 的差 → 眼睛移动 EYE、头只轻移 HEAD（SVG 单位，头半径 114）
+    // At rest the eyes sit upper-right (reference pose); pointer direction minus REST moves the eyes by EYE and the head slightly by HEAD.
+    const REST = [0.62, -0.5], EYE = 34, HEAD = 5;
+    let tx = REST[0], ty = REST[1], x = tx, y = ty, lastMove = -1e9, raf = 0, visible = true;
     const aim = (cx, cy) => {
       const r = orb.getBoundingClientRect();
       const dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2);
@@ -105,14 +105,15 @@
       if (rm.matches) { x = tx; y = ty; draw(); } else kick();
     };
     const draw = () => {
-      ball.setAttribute('transform', `translate(${(x * BALL).toFixed(2)} ${(y * BALL).toFixed(2)})`);
-      eyes.setAttribute('transform', `translate(${(x * EYE).toFixed(2)} ${(y * EYE).toFixed(2)})`);
+      const ox = x - REST[0], oy = y - REST[1];
+      ball.setAttribute('transform', `translate(${(x * HEAD).toFixed(2)} ${(y * HEAD).toFixed(2)})`);
+      eyes.setAttribute('transform', `translate(${(ox * EYE).toFixed(2)} ${(oy * EYE).toFixed(2)})`);
     };
     const tick = (now) => {
       raf = 0;
       if (now - lastMove > 2600) { // 空闲：缓慢游移 / idle drift
         const t = now / 1000;
-        tx = Math.sin(t * 0.55) * 0.5; ty = Math.sin(t * 0.37 + 1) * 0.35 - 0.1;
+        tx = REST[0] + Math.sin(t * 0.55) * 0.28; ty = REST[1] + Math.sin(t * 0.37 + 1) * 0.22;
       }
       x += (tx - x) * 0.14; y += (ty - y) * 0.14;
       draw();

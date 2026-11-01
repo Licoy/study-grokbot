@@ -134,16 +134,21 @@ export function avatarSvg(name, o = {}) {
     + (shape.extra || '') + eyes + `</svg>`;
 }
 
-// 首页 Hero 的圆球 Bot（眼睛跟随鼠标，见 assets/main.js）/ the hero orb bot (eyes follow the pointer, see assets/main.js)
-// 纯黑球体 + 浅灰外环 + 两只倾斜的白色小椭圆眼睛；球体和眼睛都会朝指针方向偏移。
-// Flat black ball + light grey ring + two small tilted white eyes; ball and eyes both shift toward the pointer.
+// 首页 Hero 的圆球 Bot（眼睛跟随指针，见 assets/main.js）/ the hero orb bot (eyes follow the pointer, see assets/main.js)
+// 一个纯色圆（前景色）+ 两只倾斜的胶囊形眼睛（背景色），无外环、无高光、无阴影；深色模式自动黑白反转。
+// One solid circle in the foreground colour + two tilted capsule eyes in the background colour; no ring, gloss or shadow.
+// Colours flip with the theme. Geometry is our own (rounded rects), in a 228-unit head space.
 // 显式 width/height：即使 CSS 没加载也不会被撑大 / explicit width/height so it never blows up without CSS.
+export const ORB = {
+  r: 114, c: 114,
+  // [cx, cy, width, length, tilt°] - 眼睛“顶端向左”倾斜 / eyes tilt with the top leaning left
+  eyes: [[126, 77, 29.5, 62, -27], [178.5, 52, 17.5, 62, -34]],
+};
 export function orbSvg(size = 88) {
-  return `<svg class="orb-svg" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true" focusable="false" style="max-width:${size}px;max-height:${size}px">`
-    + `<circle class="orb-ring" cx="60" cy="60" r="60" fill="#d4d4d4"/>`
-    + `<g class="orb-ball"><circle class="orb-body" cx="60" cy="60" r="41" fill="#000"/>`
-    + `<g class="orb-eyes">`
-    + `<g transform="rotate(22 49 46)"><ellipse class="orb-eye" cx="49" cy="46" rx="4.6" ry="9.2" fill="#fff"/></g>`
-    + `<g transform="rotate(22 66 41)"><ellipse class="orb-eye" cx="66" cy="41" rx="4.3" ry="8.6" fill="#fff"/></g>`
-    + `</g></g></svg>`;
+  const eye = ([cx, cy, w, l, a]) => `<g transform="rotate(${a} ${cx} ${cy})"><rect class="orb-eye" x="${cx - w / 2}" y="${cy - l / 2}" width="${w}" height="${l}" rx="${w / 2}" fill="#fff"/></g>`;
+  return `<svg class="orb-svg" width="${size}" height="${size}" viewBox="-10 -10 248 248" overflow="visible" aria-hidden="true" focusable="false" style="max-width:${size}px;max-height:${size}px">`
+    + `<defs><clipPath id="orbClip"><circle cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r - 3}"/></clipPath></defs>`
+    + `<g class="orb-ball"><circle class="orb-head" cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r}" fill="#0a0a0a"/>`
+    + `<g clip-path="url(#orbClip)"><g class="orb-eyes">${ORB.eyes.map(eye).join('')}</g></g>`
+    + `</g></svg>`;
 }

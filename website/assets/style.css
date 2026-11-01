@@ -427,16 +427,14 @@ html:not([data-theme-pref]) [data-theme-set=auto]{background:var(--bg);color:var
 .fn-label .bot-av{margin:-2px 7px 0 0}
 
 /* ---- Hero 圆球 Bot / hero orb bot ---- */
-.orb-bot{position:relative;width:88px;height:88px;max-width:88px;margin:0 auto 20px;border-radius:50%;animation:orb-in .8s cubic-bezier(.2,.8,.2,1) both}
-.orb-svg{display:block;width:100%;height:100%}
-.orb-ring{fill:#d4d4d4}
-[data-theme=dark] .orb-ring{fill:#cfcfcf}
-[data-theme=dark] .orb-bot{box-shadow:0 0 36px rgb(255 255 255 / .08)}
+.orb-bot{position:relative;width:88px;height:88px;max-width:88px;margin:0 auto 22px;animation:orb-in .8s cubic-bezier(.2,.8,.2,1) both}
+.orb-svg{display:block;width:100%;height:100%;overflow:visible}
+.orb-head{fill:var(--fg);transition:fill .6s}
+.orb-eye{fill:var(--bg);transition:fill .6s,transform .09s ease-in;transform-box:fill-box;transform-origin:center}
 .orb-ball,.orb-eyes{will-change:transform}
-.orb-eye{transform-box:fill-box;transform-origin:center;transition:transform .09s ease-in}
-.orb-bot.blink .orb-eye{transform:scaleY(.1)}
+.orb-bot.blink .orb-eye{transform:scaleY(.12)}
 @keyframes orb-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:none}}
-@media (max-width:640px){.orb-bot{width:68px!important;height:68px!important;margin-bottom:16px!important}}
+@media (max-width:640px){.orb-bot{width:68px!important;height:68px!important;margin-bottom:18px!important}}
 @media (prefers-reduced-motion:reduce){.orb-bot{animation:none}.orb-eye{transition:none}}
 
 /* ---- 自查修复 / self-review fixes ---- */
