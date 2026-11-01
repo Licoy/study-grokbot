@@ -562,12 +562,13 @@ html:not([data-theme-pref]) .dd-val[data-for=auto]{display:inline-flex}
 .cm-qr{margin:0;width:220px;display:flex;flex-direction:column;align-items:center;text-align:center}
 /* 二维码始终白底黑码（深色模式也一样，保证能扫），所以中间的 Logo 固定用浅色版配色
    The code is always black on white (dark mode too, so it scans), so the centre logo keeps its light-theme colours */
-.qr{position:relative;width:220px;height:220px;padding:16px;border-radius:20px;background:#fff;color:#0a0a0a;box-shadow:0 0 0 1px rgb(0 0 0 / .06),0 12px 32px -14px rgb(0 0 0 / .22)}
-.qr-code{display:block;width:100%;height:100%}
+.qr{position:relative;width:220px;height:220px;border-radius:20px;background:#fff;color:#0a0a0a;box-shadow:0 0 0 1px rgb(0 0 0 / .06),0 12px 32px -14px rgb(0 0 0 / .22)}
+.qr-code{display:block;width:100%;height:100%} /* 四周留白画在 SVG 里（lib/qr.mjs）/ the quiet zone is part of the SVG (lib/qr.mjs) */
 /* 占位码打上高斯模糊，表示群码还没上线（Logo 保持清晰）；overflow 裁掉模糊溢出到圆角外的部分
    The placeholder code is blurred to show the group isn't live yet (the logo stays sharp); overflow clips the blur at the rounded corners */
 .qr{overflow:hidden}
 .qr-temp .qr-code{filter:blur(5px);opacity:.75}
+/* Logo 方块的尺寸和 lib/qr.mjs 的 QR_LOGO（50/220）对应，那里会把它下面的模块清掉 / sized to match QR_LOGO (50/220) in lib/qr.mjs, which clears the modules beneath it */
 .qr-logo{position:absolute;left:50%;top:50%;display:grid;place-items:center;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:14px;background:#fff}
 .qr-logo .orb-svg{width:34px;height:34px}
 .qr .orb-head,.qr .orb-cap-fill{fill:#0a0a0a}.qr .orb-cap-fill{stroke:#fff}.qr .orb-cap-base{stroke:none}.qr .orb-eye{fill:#fff}.qr .orb-happy{display:none}

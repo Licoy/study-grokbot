@@ -11,7 +11,8 @@ import { ri } from './lib/icons.mjs';
 import { LANGS, DEFAULT_LANG, dict } from './lib/i18n.mjs';
 import { ogTitle, specHash } from './lib/og.mjs';
 import { avatarSvg, orbSvg, LINEUP } from './lib/avatar.mjs';
-import { placeholderQr } from './lib/qr.mjs';
+import { qrSvg } from './lib/qr.mjs';
+import community from './community.config.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(root, 'dist');
@@ -352,15 +353,17 @@ function archivePage(lang, issues) {
 }
 
 // 社群页：每个渠道一张卡片（左边说明和加入步骤，右边二维码，中间叠站点 Logo），下面是社群公约和其它参与方式。
-// 渠道来自 site.config.mjs 的 community，文案在 i18n 的 community。没配真实二维码时用 lib/qr.mjs 的占位码，并提示“即将上线”。
+// 渠道和二维码内容来自 community.config.mjs，文案在 i18n 的 community；二维码由 lib/qr.mjs 在构建时生成。
+// 还没填内容的渠道用本页地址生成一个示意码并打上模糊，提示“即将上线”。
 // Community page: one card per channel (blurb + steps on the left, QR code with the site logo on the right), then house rules and
-// other ways to take part. Channels come from site.config.mjs, copy from i18n `community`. Without a real QR image it shows the
-// placeholder from lib/qr.mjs plus a "coming soon" note.
+// other ways to take part. Channels and QR text come from community.config.mjs, copy from i18n `community`; lib/qr.mjs builds the codes.
+// A channel without QR text gets a blurred sample code (encoding this page's URL) and a "coming soon" note.
 function communityPage(lang) {
   const t = dict[lang], c = t.community;
   const card = (ch) => {
     const x = c.channels[ch.id];
-    const code = ch.qr ? `<img class="qr-code" src="${b}${ch.qr}" alt="${esc(c.qrAlt(x.name))}" width="188" height="188" decoding="async">` : placeholderQr(ch.id);
+    const live = Boolean(ch.qr?.trim());
+    const code = qrSvg(live ? ch.qr.trim() : abs(lang, 'community/'), { logo: ch.logo !== false });
     return `<article class="cm-card reveal" id="${ch.id}">
     <div class="cm-info">
       <div class="cm-k"><span class="cm-ic cm-ic-${ch.id}">${ri(ch.icon)}</span><span><h2>${esc(x.name)}</h2><p>${esc(x.sub)}</p></span></div>
@@ -368,8 +371,8 @@ function communityPage(lang) {
       <ol class="cm-steps">${x.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol>
     </div>
     <figure class="cm-qr">
-      <div class="qr${ch.qr ? '' : ' qr-temp'}"${ch.qr ? '' : ` role="img" aria-label="${esc(`${c.qrAlt(x.name)} · ${c.soon}`)}"`}>${code}${ch.logo === false ? '' : `<span class="qr-logo">${orbSvg(34)}</span>`}</div>
-      <figcaption><span class="cm-hint">${ri('qr-scan-2-line')}${esc(x.hint)}</span>${ch.qr ? '' : `<span class="cm-note">${esc(c.soon)}</span>`}<span class="cm-note cm-mobile">${esc(c.mobile)}</span></figcaption>
+      <div class="qr${live ? '' : ' qr-temp'}" role="img" aria-label="${esc(live ? c.qrAlt(x.name) : `${c.qrAlt(x.name)} · ${c.soon}`)}">${code}${ch.logo === false ? '' : `<span class="qr-logo">${orbSvg(34)}</span>`}</div>
+      <figcaption><span class="cm-hint">${ri('qr-scan-2-line')}${esc(x.hint)}</span>${live ? '' : `<span class="cm-note">${esc(c.soon)}</span>`}<span class="cm-note cm-mobile">${esc(c.mobile)}</span></figcaption>
     </figure>
   </article>`;
   };
@@ -383,7 +386,7 @@ function communityPage(lang) {
 </section>
 <div class="container community">
   <div class="cm-list">
-  ${(site.community || []).map(card).join('\n  ')}
+  ${community.map(card).join('\n  ')}
   </div>
   <section class="section">
     <div class="section-head center reveal"><h2 class="h2">${esc(c.rulesHead)}</h2><p class="sub">${esc(c.rulesSub)}</p></div>

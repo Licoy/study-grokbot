@@ -19,7 +19,7 @@ if (!process.argv.includes('--no-watch')) {
   for (const dir of ['issues', 'guide', 'assets', 'lib']) {
     fs.watch(path.join(root, dir), { recursive: true }, () => { clearTimeout(timer); timer = setTimeout(build, 150); });
   }
-  for (const f of ['build.mjs', 'site.config.mjs']) fs.watch(path.join(root, f), () => { clearTimeout(timer); timer = setTimeout(build, 150); });
+  for (const f of ['build.mjs', 'site.config.mjs', 'community.config.mjs']) fs.watch(path.join(root, f), () => { clearTimeout(timer); timer = setTimeout(build, 150); });
 }
 
 http.createServer((req, res) => {
