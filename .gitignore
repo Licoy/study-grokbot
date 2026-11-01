@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.og-cache/
+/ref/
+/screenshots/
+.DS_Store

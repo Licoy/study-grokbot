@@ -1,0 +1,24 @@
+{
+  "name": "study-grokbot-website",
+  "version": "0.1.0",
+  "description": "Study GrokBot static site (unofficial community project) / 非官方社区学习站",
+  "scripts": {
+    "build": "node build.mjs",
+    "og": "node scripts/og.mjs",
+    "build:full": "node build.mjs && node scripts/og.mjs",
+    "check": "node scripts/validate.mjs",
+    "dev": "node serve.mjs",
+    "preview": "node serve.mjs --no-watch",
+    "new": "node scripts/new-issue.mjs"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "marked": "^18.1.2"
+  },
+  "private": true,
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}

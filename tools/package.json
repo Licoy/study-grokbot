@@ -1,0 +1,13 @@
+{
+  "name": "study-grokbot-tools",
+  "private": true,
+  "description": "Browser tests and screenshots for the Study GrokBot website (Playwright). Run against `npm run dev` in ../website.",
+  "type": "module",
+  "scripts": {
+    "test": "node test.mjs",
+    "shoot": "node shoot.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.64.1"
+  }
+}

@@ -1,0 +1,66 @@
+# 构建 website/ 并发布到 GitHub Pages（自定义域名 studygrokbot.com）
+# 启用方式：仓库 Settings → Pages → Source 选 “GitHub Actions”，Custom domain 填 studygrokbot.com 并勾选 Enforce HTTPS
+# Enable: Settings → Pages → Source = GitHub Actions; Custom domain = studygrokbot.com; Enforce HTTPS
+name: Deploy website to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          # 主域名 / primary domain（与 site.config.mjs 默认值一致）
+          SITE_URL: https://studygrokbot.com/
+          BASE_PATH: /
+      # Open Graph 图：SVG → PNG（需要 Chromium + 中文衬线字体，仅在 CI 构建时使用，不影响访客加载）
+      - name: Render OG images
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra
+          npx playwright install --with-deps chromium
+          npm run og
+      - name: Validate
+        run: npm run check
+        env:
+          SITE_URL: https://studygrokbot.com/
+          BASE_PATH: /
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
