@@ -98,6 +98,20 @@ const tocHtml = (toc, t) => toc.length
   ? `<nav class="toc" aria-label="${esc(t.toc)}"><div class="toc-h">${esc(t.toc)}</div><ul>${toc.map((x) => `<li class="d${x.depth}"><a href="#${x.id}">${esc(x.text)}</a></li>`).join('')}</ul></nav>`
   : '';
 
+
+// 中文标题按词断行：只在“两个字以上的词”之前允许换行，避免“机/器人”这类拆法
+// Chinese headings: allow line breaks only before multi-character words (no "机/器人" splits)
+const zhSeg = new Intl.Segmenter('zh', { granularity: 'word' });
+function wrapTitle(text, lang) {
+  if (lang !== 'zh') return esc(text);
+  let out = '', prev = '';
+  for (const { segment, isWordLike } of zhSeg.segment(text)) {
+    if (out && isWordLike && [...segment].length >= 2 && !/[《（(“\-]$/.test(prev)) out += '<wbr>';
+    out += esc(segment); prev = segment;
+  }
+  return out;
+}
+
 function issuePage(it, prev, next, pairs) {
   const { lang } = it; const t = dict[lang];
   const p = `issues/${it.slug}/`;
@@ -109,7 +123,7 @@ function issuePage(it, prev, next, pairs) {
 <section class="page-hero">
   <div class="container narrow center">
     <a class="pill reveal" href="${rel(lang, 'archive/')}"><span class="pill-strong">${esc(t.noLabel(it.no))}</span><span class="pill-sep">•</span><time datetime="${it.date}">${t.date(it.date)}</time><span class="pill-icon">${icon.arrow}</span></a>
-    <h1 class="display reveal">${esc(it.title)}</h1>
+    <h1 class="display reveal">${wrapTitle(it.title, lang)}</h1>
     <p class="lede reveal">${esc(it.summary)}</p>
     <div class="reveal">${tagList(it.tags)}</div>
   </div>
@@ -274,7 +288,7 @@ function guidePage(g, guides, pairs) {
 <section class="page-hero">
   <div class="container narrow center">
     <a class="pill reveal" href="${rel(lang, 'guide/')}"><span class="pill-strong">${esc(t.guideLabel)}</span><span class="pill-sep">•</span><span>${esc(t.draft)}</span><span class="pill-icon">${icon.arrow}</span></a>
-    <h1 class="display reveal">${esc(g.title)}</h1>
+    <h1 class="display reveal">${wrapTitle(g.title, lang)}</h1>
     <p class="lede reveal">${esc(g.summary)}</p>
   </div>
 </section>

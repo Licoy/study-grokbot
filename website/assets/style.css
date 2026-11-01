@@ -438,3 +438,9 @@ html:not([data-theme-pref]) [data-theme-set=auto]{background:var(--bg);color:var
 @keyframes orb-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:none}}
 @media (max-width:640px){.orb-bot{width:68px!important;height:68px!important;margin-bottom:16px!important}}
 @media (prefers-reduced-motion:reduce){.orb-bot{animation:none}.orb-eye{transition:none}}
+
+/* ---- 自查修复 / self-review fixes ---- */
+.brand{white-space:nowrap;flex:none}
+@media (max-width:900px){.nav-links a{padding:6px 9px}.anchor{display:none}}
+.display,.prose h2,.prose h3,.ir-title,.pager-card strong{text-wrap:balance}
+:lang(zh) .page-hero .display{word-break:keep-all;overflow-wrap:anywhere}
