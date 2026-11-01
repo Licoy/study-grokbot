@@ -15,6 +15,7 @@
 //     Both language names of a bot map to one key (BOT_KEYS) so the avatar matches across languages.
 //   - key 的哈希（FNV-1a）决定颜色和形状：结果是“随机”的，但每次构建都一样。圆形（orb）出现的概率更高。
 //     The FNV-1a hash of the key picks colour and shape: random-looking but stable across builds. Orbs are the most common shape.
+//   - PINNED_SHAPES 可以给个别 Bot 固定形状（如构建师固定为圆球）。/ PINNED_SHAPES fixes the shape of individual bots (e.g. the builder is an orb).
 //   - 同一组 Bot（lineup）内颜色不重复，并尽量各占一个色系（避免红/粉/橙扎堆）；除圆形外，形状也不重复。
 //     冲突时按固定顺序往后找下一个空位。
 //     Within a lineup no colour repeats and colours spread across families where possible (no red/pink/orange cluster);
@@ -94,10 +95,14 @@ const ellipse = ([cx, cy], rx, ry, deg = 0) => {
 // 眼睛尺寸都按 R 推算 / eye sizes derive from R: length 0.55R, near width 0.255R, far width 0.17R.
 export const SHAPES = [
   { id: 'orb', weight: 3, body: ellipse([50, 50], 46, 46), eyes: [[54.7, 34.8], [75.8, 25.2], -35, 46] },
-  { id: 'soft-triangle', body: softPoly([[36, 20], [84, 54], [26, 82]], { rho: 15, puff: 0.1 }), eyes: [[51, 32], [68, 39.5], 56, 40] },
+  // 尖角朝上、略向左歪的圆角三角形（像吉他拨片），眼睛和其它形状一样竖着看向右上方
+  // an upward, slightly left-leaning rounded triangle (like a guitar pick); eyes stand upright and look up-right like the others
+  { id: 'soft-triangle', body: softPoly([[44.3, 17.6], [77.6, 72.7], [15.2, 74.8]], { rho: 14.5, puff: 0.12, deg: -12 }), eyes: [[52, 48], [66.5, 43.6], -27, 37] },
   { id: 'soft-square', body: softPoly([[27, 27], [73, 27], [73, 73], [27, 73]], { rho: 15, puff: 0.22, deg: -16 }), eyes: [[55, 31], [72, 27.5], -22, 40] },
-  { id: 'egg', body: ellipse([50, 51], 39, 46, -16), eyes: [[54, 30], [70.5, 25.5], -30, 40] },
-  { id: 'bean', body: ellipse([50, 52], 46, 36, -18), eyes: [[54, 37], [70, 32], -22, 38] },
+  { id: 'egg', body: ellipse([50, 51], 39, 46, -16), eyes: [[53.5, 31], [69.5, 26.5], -30, 40] },
+  // 横向、略往右上翘的饱满椭圆；不能太扁，否则在小尺寸下显得比别的形状小一圈、眼睛也看不清
+  // a plump, wide ellipse tilted up to the right; flatter versions look a size smaller than the others and lose their eyes at small sizes
+  { id: 'bean', body: ellipse([50, 51], 45, 39, -16), eyes: [[55, 35], [71.5, 30.5], -25, 42] },
 ];
 
 // 中英文名字 → 同一个 key / both language names → one stable key
@@ -122,10 +127,13 @@ function fnv1a(s) {
 
 // 按权重展开的形状表（圆形多几份）/ shape indexes expanded by weight (more orbs)
 const SHAPE_POOL = SHAPES.flatMap((s, i) => Array(s.weight || 1).fill(i));
+// 固定形状（覆盖哈希结果）：哈希分到的形状不合适时在这里指定，不影响其它 Bot 的分配
+// Pinned shapes that override the hash; use when a hashed shape doesn't suit a bot. Other bots' picks stay as they are.
+export const PINNED_SHAPES = { builder: 'orb' };
 // 单个 key 的“原始”选择 / raw pick for one key
 export function rawPick(key) {
-  const h = fnv1a(key);
-  return { color: h % PALETTE.length, shape: SHAPE_POOL[(Math.floor(h / PALETTE.length) >>> 0) % SHAPE_POOL.length] };
+  const h = fnv1a(key), pin = PINNED_SHAPES[key];
+  return { color: h % PALETTE.length, shape: pin ? SHAPES.findIndex((s) => s.id === pin) : SHAPE_POOL[(Math.floor(h / PALETTE.length) >>> 0) % SHAPE_POOL.length] };
 }
 
 // 一组 key 依次分配：颜色不重复且尽量分散在不同色系，非圆形的形状不重复 / assign a lineup: distinct colours across families; no repeated non-orb shape

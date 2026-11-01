@@ -10,7 +10,7 @@ import { orbSvg, avatarSvg, LINEUP } from './avatar.mjs';
 export const OG_W = 1200;
 export const OG_H = 630;
 export const OG_FAMILY = 'OG Sans'; // @font-face alias that points at the Source Han Sans SC files
-const OG_DESIGN = 2; // 改版式时加一，让缓存的 PNG 失效 / bump when the template changes so cached PNGs re-render
+const OG_DESIGN = 3; // 改版式时加一，让缓存的 PNG 失效 / bump when the template changes so cached PNGs re-render
 
 // 去掉标题里和角标重复的期号前缀 / drop the "Issue DATE:" / 《DATE期：…》 prefix that the badge already shows
 export function ogTitle(lang, title) {
@@ -62,8 +62,9 @@ body{font-family:"${OG_FAMILY}";color:#0a0a0a;-webkit-font-smoothing:antialiased
 .domain{display:flex;align-items:center;gap:12px;font-weight:500;font-size:24px}
 .dot{width:10px;height:10px;border-radius:50%;background:#ff6a08}
 .crew{display:flex;align-items:center;gap:14px;font-size:20px;color:#686c73}
-.crew .avs{display:flex}
-.crew .bot-av{width:34px;height:34px;margin-left:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px #fff}
+/* 头像并排、不叠压：形状各不相同，叠起来会互相啃掉轮廓 / side by side, no overlap - the shapes differ, so stacking would bite into each other */
+.crew .avs{display:flex;gap:8px}
+.crew .bot-av{display:block;width:34px;height:34px}
 .hero{position:absolute;right:96px;top:50%;width:270px;height:270px;margin-top:-118px}
 .hero .orb-svg{width:270px;height:270px;overflow:visible}
 /* 静态圆球：不显示悬停笑眼，眼睛看向左边的标题 / static orb: no hover smile, eyes look left toward the title */
