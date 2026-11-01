@@ -14,6 +14,15 @@ export default {
   x: 'https://x.com/licoycn',
   langs: ['en', 'zh'],          // first = default language at site root
   author: 'Study GrokBot community',
+  // 社群页（/community/）的渠道：按顺序列出，文案在 i18n 的 community.channels[id]。
+  // qr：assets/ 下的二维码图片路径（如 'assets/community/wechat.png'），留空时显示临时占位二维码。
+  // logo：是否在二维码中间叠加站点 Logo（真实二维码需用高容错级别 H 生成；自带 Logo 的码设为 false）。
+  // Channels on the community page (/community/), in order; copy lives in i18n community.channels[id].
+  // qr: path of the QR image under assets/ (e.g. 'assets/community/wechat.png'); empty shows a temporary placeholder.
+  // logo: overlay the site logo in the centre (generate real codes with error correction level H; set false if the code has its own logo).
+  community: [
+    { id: 'wechat', icon: 'wechat-fill', qr: '', logo: true },
+  ],
   // 首页 / 指南页顺序
   guide: [
     { slug: '', file: 'index.md' },

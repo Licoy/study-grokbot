@@ -542,6 +542,60 @@ html:not([data-theme-pref]) .dd-val[data-for=auto]{display:inline-flex}
 @media (prefers-reduced-motion:reduce){.dd-menu{animation:none}}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+/* ---------- 社群页 / community page ---------- */
+/* 整页统一 900px 宽，渠道卡片和下面两组卡片左右对齐 / one 900px column so the channel card lines up with the grids below */
+.community{max-width:calc(900px + 48px);padding-bottom:112px}
+.cm-list{display:grid;gap:16px}
+.community .section{padding-top:96px}
+/* 渠道卡片：左边说明和步骤，右边二维码 / channel card: blurb + steps on the left, QR code on the right */
+.cm-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:56px;align-items:center;padding:44px 48px;border-radius:var(--radius-lg);background:var(--card);scroll-margin-top:calc(var(--header-h) + 24px)}
+.cm-k{display:flex;align-items:center;gap:14px}
+.cm-ic{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--border)}
+.cm-ic .ri{width:28px;height:28px;color:var(--fg)}
+.cm-ic-wechat .ri{color:#07c160}
+.cm-k h2{margin:0;font-size:26px;font-weight:600;line-height:1.25;letter-spacing:var(--track-display);color:var(--fg)}
+.cm-k p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.cm-desc{margin:22px 0 0;color:var(--muted-2)}
+.cm-steps{list-style:none;counter-reset:st;display:grid;gap:12px;margin:26px 0 0;padding:26px 0 0;border-top:1px solid rgb(var(--ink) / .07)}
+.cm-steps li{counter-increment:st;display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.6;color:var(--text)}
+.cm-steps li::before{content:counter(st);flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:99px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--border-2);font-size:12px;font-weight:600;line-height:1;color:var(--fg)}
+.cm-qr{margin:0;width:220px;display:flex;flex-direction:column;align-items:center;text-align:center}
+/* 二维码始终白底黑码（深色模式也一样，保证能扫），所以中间的 Logo 固定用浅色版配色
+   The code is always black on white (dark mode too, so it scans), so the centre logo keeps its light-theme colours */
+.qr{position:relative;width:220px;height:220px;padding:16px;border-radius:20px;background:#fff;color:#0a0a0a;box-shadow:0 0 0 1px rgb(0 0 0 / .06),0 12px 32px -14px rgb(0 0 0 / .22)}
+.qr-code{display:block;width:100%;height:100%}
+/* 占位码打上高斯模糊，表示群码还没上线（Logo 保持清晰）；overflow 裁掉模糊溢出到圆角外的部分
+   The placeholder code is blurred to show the group isn't live yet (the logo stays sharp); overflow clips the blur at the rounded corners */
+.qr{overflow:hidden}
+.qr-temp .qr-code{filter:blur(5px);opacity:.75}
+.qr-logo{position:absolute;left:50%;top:50%;display:grid;place-items:center;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:14px;background:#fff}
+.qr-logo .orb-svg{width:34px;height:34px}
+.qr .orb-head,.qr .orb-cap-fill{fill:#0a0a0a}.qr .orb-cap-fill{stroke:#fff}.qr .orb-cap-base{stroke:none}.qr .orb-eye{fill:#fff}.qr .orb-happy{display:none}
+.cm-qr figcaption{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.cm-hint{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--fg)}
+.cm-hint .ri{width:16px;height:16px;color:var(--muted)}
+.cm-note{font-size:12px;line-height:1.5;color:var(--muted)}
+.cm-mobile{display:none}
+/* 公约与其它参与方式 / house rules and other ways to take part */
+.cm-rule{padding:28px;border-radius:var(--radius);background:var(--card)}
+.cm-rule .ri{width:22px;height:22px;color:var(--fg)}
+.cm-rule h3{margin:14px 0 0;font-size:17px;font-weight:600;color:var(--fg)}
+.cm-rule p{margin:6px 0 0;font-size:14.5px;line-height:1.65;color:var(--muted-2)}
+.cm-link{display:flex;align-items:flex-start;gap:14px;padding:24px;border-radius:var(--radius);background:var(--card);transition:background .2s}
+.cm-link:hover{background:var(--card-hover)}
+.cm-link > .ri{flex:none;width:22px;height:22px;color:var(--fg)}
+.cm-link > .ri:last-child{width:18px;height:18px;margin-left:auto;color:var(--muted);transition:transform .2s var(--ease)}
+.cm-link:hover > .ri:last-child{transform:translate(2px,-2px)}
+.cm-link span{min-width:0}
+.cm-link b{display:block;font-weight:600;font-size:16px;color:var(--fg);line-height:1.4}
+.cm-link i{display:block;margin-top:4px;font-style:normal;font-size:14px;line-height:1.55;color:var(--muted-2)}
+@media (max-width:760px){
+  .cm-card{grid-template-columns:1fr;gap:32px;padding:28px 22px}
+  .cm-qr{justify-self:center}
+  .cm-mobile{display:block;max-width:260px}
+  .community{padding-bottom:72px}
+}
+
 /* ---------- 期刊：要点 / 问答 / 译文 ---------- */
 .tldr{margin:0 0 40px;padding:22px 26px 18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent)}
 .tldr-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}

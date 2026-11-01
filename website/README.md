@@ -28,6 +28,7 @@ npm run new -- "<Chinese topic>" "English topic" 2026-11-02   # scaffold a new i
 - **UI strings**: `lib/i18n.mjs`. Every page uses only its own language; the language menu shows native names (English / 简体中文).
 - **Latest issue**: internal "Latest issue" links point straight at the newest issue (`site.latest`, set in `build.mjs`; `latestHref()` in `lib/templates.mjs`). `/latest/` and `/zh/latest/` stay for outside links: a site-styled, `noindex` page that jumps to the issue at once with JS (meta refresh without JS), with its canonical on the issue.
 - **Header menus**: language and theme are icon + dropdown menus (`dropdown()` in `lib/templates.mjs`, keyboard support in `assets/main.js`). The buttons are icon-only (label in `aria-label` / `title`); the menu items show full labels. GitHub and X (`site.x`) sit next to them as icon buttons; at 760px and below they move into the mobile menu.
+- **Community page**: the "Community" nav entry links to its own page, `/community/` (`communityPage()` in `build.mjs`): one card per channel with a blurb and joining steps on the left and the QR code, site logo in the centre, on the right; below are house rules and other ways to take part (GitHub submissions, X, RSS). Channels are configured as `community` in `site.config.mjs` (WeChat for now), copy is `community` in `lib/i18n.mjs`. With an empty `qr`, a temporary placeholder from `lib/qr.mjs` (it does not scan) and a "coming soon" note are shown; once the real group code exists, put it in `assets/` and set its path (generate it with error correction level H for the logo overlay, or set `logo: false` if the code has its own logo).
 - **Issue reading**: the prose is centred with the TOC on the right and a column of round icon buttons on the left fixed to the vertical centre of the screen and faded out when the footer shows (`readTools()` in `build.mjs`, behaviour in `assets/main.js`): immersive mode (Esc exits), larger / smaller text (saved as `sg-fs` in `localStorage` and restored by the `<head>` script before first paint), copy link, Markdown source, back to top / jump to bottom; hidden at 960px and below. Previous / next issue cards sit at the bottom; when there is none, a greyed-out card says this is the first / latest issue.
 - **First visit**: browsers that prefer Chinese are sent to the matching `/zh/` page. The choice is saved in `localStorage.sg-lang`, a manual switch always wins, and crawlers are never redirected.
 - **Theme**: auto / light / dark, saved in `localStorage.sg-theme` and applied before first paint.
@@ -130,7 +131,7 @@ website/
 ├─ guide/{en,zh}/   guide pages
 ├─ assets/          style.css, main.js, favicon.svg
 ├─ public/          copied to the dist root (CNAME)
-├─ lib/             markdown, templates, i18n, icons (Remix Icon), avatar (bot avatars + hero orb), og (share-card template), og-font (font version and paths)
+├─ lib/             markdown, templates, i18n, icons (Remix Icon), avatar (bot avatars + hero orb), qr (community placeholder QR), og (share-card template), og-font (font version and paths)
 ├─ scripts/         new-issue, og, fetch-font, readme-issues, validate
 ├─ site.config.mjs  site settings
 ├─ build.mjs        build script

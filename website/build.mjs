@@ -11,6 +11,7 @@ import { ri } from './lib/icons.mjs';
 import { LANGS, DEFAULT_LANG, dict } from './lib/i18n.mjs';
 import { ogTitle, specHash } from './lib/og.mjs';
 import { avatarSvg, orbSvg, LINEUP } from './lib/avatar.mjs';
+import { placeholderQr } from './lib/qr.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(root, 'dist');
@@ -350,6 +351,55 @@ function archivePage(lang, issues) {
   return layout({ site, lang, t, active: 'archive', body, page: meta(lang, 'archive/', langs, { title: t.archivePageTitle, description: t.archivePageLede(issues.length), jsonld }) });
 }
 
+// 社群页：每个渠道一张卡片（左边说明和加入步骤，右边二维码，中间叠站点 Logo），下面是社群公约和其它参与方式。
+// 渠道来自 site.config.mjs 的 community，文案在 i18n 的 community。没配真实二维码时用 lib/qr.mjs 的占位码，并提示“即将上线”。
+// Community page: one card per channel (blurb + steps on the left, QR code with the site logo on the right), then house rules and
+// other ways to take part. Channels come from site.config.mjs, copy from i18n `community`. Without a real QR image it shows the
+// placeholder from lib/qr.mjs plus a "coming soon" note.
+function communityPage(lang) {
+  const t = dict[lang], c = t.community;
+  const card = (ch) => {
+    const x = c.channels[ch.id];
+    const code = ch.qr ? `<img class="qr-code" src="${b}${ch.qr}" alt="${esc(c.qrAlt(x.name))}" width="188" height="188" decoding="async">` : placeholderQr(ch.id);
+    return `<article class="cm-card reveal" id="${ch.id}">
+    <div class="cm-info">
+      <div class="cm-k"><span class="cm-ic cm-ic-${ch.id}">${ri(ch.icon)}</span><span><h2>${esc(x.name)}</h2><p>${esc(x.sub)}</p></span></div>
+      <p class="cm-desc">${esc(x.desc)}</p>
+      <ol class="cm-steps">${x.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol>
+    </div>
+    <figure class="cm-qr">
+      <div class="qr${ch.qr ? '' : ' qr-temp'}"${ch.qr ? '' : ` role="img" aria-label="${esc(`${c.qrAlt(x.name)} · ${c.soon}`)}"`}>${code}${ch.logo === false ? '' : `<span class="qr-logo">${orbSvg(34)}</span>`}</div>
+      <figcaption><span class="cm-hint">${ri('qr-scan-2-line')}${esc(x.hint)}</span>${ch.qr ? '' : `<span class="cm-note">${esc(c.soon)}</span>`}<span class="cm-note cm-mobile">${esc(c.mobile)}</span></figcaption>
+    </figure>
+  </article>`;
+  };
+  const more = [[site.repo + '/issues', 'github-fill', c.more.submit, true], [site.x, 'twitter-x-fill', c.more.x, true], [rel(lang, 'feed.xml'), 'rss-line', c.more.rss, false]];
+  const body = `
+<section class="page-hero">
+  <div class="container narrow center">
+    <h1 class="display reveal">${esc(c.title)}</h1>
+    <p class="lede reveal">${esc(c.lede)}</p>
+  </div>
+</section>
+<div class="container community">
+  <div class="cm-list">
+  ${(site.community || []).map(card).join('\n  ')}
+  </div>
+  <section class="section">
+    <div class="section-head center reveal"><h2 class="h2">${esc(c.rulesHead)}</h2><p class="sub">${esc(c.rulesSub)}</p></div>
+    <div class="grid-3">${c.rules.map(([ic, h, d]) => `<div class="cm-rule reveal">${ri(ic)}<h3>${esc(h)}</h3><p>${esc(d)}</p></div>`).join('')}</div>
+  </section>
+  <section class="section">
+    <div class="section-head center reveal"><h2 class="h2">${esc(c.moreHead)}</h2></div>
+    <div class="grid-3">${more.map(([h, ic, [title, d], ext]) => `<a class="cm-link reveal" href="${h}"${ext ? ' target="_blank" rel="noopener"' : ''}>${ri(ic)}<span><b>${esc(title)}</b><i>${esc(d)}</i></span>${ext ? icon.arrow : icon.right}</a>`).join('')}</div>
+  </section>
+</div>`;
+  const jsonld = graph(lang,
+    { '@type': 'WebPage', '@id': `${abs(lang, 'community/')}#page`, name: c.title, description: c.lede, url: abs(lang, 'community/'), inLanguage: LANGS[lang].hreflang, isPartOf: { '@id': SITE_ID } },
+    crumbs(lang, [[c.title, abs(lang, 'community/')]]));
+  return layout({ site, lang, t, active: 'community', body, page: meta(lang, 'community/', langs, { title: c.title, description: c.lede, jsonld }) });
+}
+
 const guidePath = (g) => `guide/${g.slug ? g.slug + '/' : ''}`;
 function guidePage(g, guides, pairs) {
   const { lang } = g; const t = dict[lang];
@@ -489,7 +539,8 @@ for (const l of langs) { all[l] = loadIssues(l); guides[l] = loadGuides(l); }
 // 站内“最新一期”链接直接指向当期文章（templates.mjs 的 latestHref）/ internal "Latest issue" links point straight at the issue
 site.latest = Object.fromEntries(langs.filter((l) => all[l][0]).map((l) => [l, rel(l, `issues/${all[l][0].slug}/`)]));
 const sm = [{ alternates: Object.fromEntries(langs.map((l) => [l, abs(l)])), lastmod: all.en[0]?.date },
-  { alternates: Object.fromEntries(langs.map((l) => [l, abs(l, 'archive/')])), lastmod: all.en[0]?.date }];
+  { alternates: Object.fromEntries(langs.map((l) => [l, abs(l, 'archive/')])), lastmod: all.en[0]?.date },
+  { alternates: Object.fromEntries(langs.map((l) => [l, abs(l, 'community/')])) }];
 const og = {};
 
 for (const lang of langs) {
@@ -505,6 +556,7 @@ for (const lang of langs) {
   });
   write(`${pfx}index.html`, homePage(lang, issues));
   write(`${pfx}archive/index.html`, archivePage(lang, issues));
+  write(`${pfx}community/index.html`, communityPage(lang));
   if (issues[0]) {
     // /latest/ 只给站外链接用（站内链接已直接指向当期）：用站点样式渲染，立即跳到当期，canonical 指向当期
     // /latest/ is for outside links only (internal links already point at the issue): site-styled, jumps at once, canonical = the issue

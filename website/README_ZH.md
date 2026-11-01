@@ -28,6 +28,7 @@ npm run new -- "中文主题" "English topic" 2026-11-02   # 同时新建中英�
 - **界面文案**：`lib/i18n.mjs`。每个页面只用自己的语言；语言菜单显示各语言的原名（English / 简体中文）。
 - **最新一期**：站内的“最新一期”链接直接指向当期文章（`build.mjs` 写入 `site.latest`，`lib/templates.mjs` 的 `latestHref()`）。`/latest/`、`/zh/latest/` 只留给站外链接：用站点样式渲染、`noindex`，有 JS 时立即跳到当期（没有 JS 时用 meta refresh），canonical 指向当期。
 - **顶栏菜单**：语言和主题都是“图标 + 下拉菜单”（`lib/templates.mjs` 的 `dropdown()`，键盘操作在 `assets/main.js`）。按钮只显示图标（文字放在 `aria-label` / `title`），菜单项显示完整文字。GitHub 和 X（`site.x`）作为图标按钮放在它们旁边，760px 及以下收进移动端菜单。
+- **社群页**：导航里的“社群”指向独立页面 `/community/`（`build.mjs` 的 `communityPage()`）：每个渠道一张卡片，左边是说明和加入步骤，右边是二维码，中间叠站点 Logo；下面是社群公约和其它参与方式（GitHub 投稿、X、RSS）。渠道在 `site.config.mjs` 的 `community` 里配置（目前只有微信），文案在 `lib/i18n.mjs` 的 `community`。`qr` 留空时显示 `lib/qr.mjs` 生成的临时占位码（扫不出内容）和“即将上线”提示；拿到真实群码后放进 `assets/`，填上路径即可（叠 Logo 需用高容错级别 H 生成，自带 Logo 的码设 `logo: false`）。
 - **期刊阅读**：正文居中，右侧是本期目录，左侧是一列圆形图标按钮组成的阅读工具条，固定在屏幕竖直居中处、页脚出现时淡出（`build.mjs` 的 `readTools()`，交互在 `assets/main.js`）：沉浸式阅读（Esc 退出）、放大 / 缩小字号（存在 `localStorage` 的 `sg-fs`，由 `<head>` 脚本在首屏前恢复）、复制链接、Markdown 原文、回到顶部 / 跳到底部；960px 及以下隐藏。底部有上一期 / 下一期卡片，没有时显示灰色的“已经是第一期 / 最新一期了”。
 - **首次访问**：浏览器首选中文时跳到对应的 `/zh/` 页面。选择保存在 `localStorage.sg-lang`，手动切换优先；爬虫不跳转。
 - **主题**：自动 / 浅色 / 深色，保存在 `localStorage.sg-theme`，首屏绘制前生效。
@@ -129,7 +130,7 @@ website/
 ├─ guide/{en,zh}/   指南页
 ├─ assets/          style.css、main.js、favicon.svg
 ├─ public/          复制到 dist 根目录（CNAME）
-├─ lib/             markdown、templates、i18n、icons（Remix Icon）、avatar（Bot 头像与首页圆球）、og（分享图模板）、og-font（字体版本与路径）
+├─ lib/             markdown、templates、i18n、icons（Remix Icon）、avatar（Bot 头像与首页圆球）、qr（社群占位二维码）、og（分享图模板）、og-font（字体版本与路径）
 ├─ scripts/         new-issue、og、fetch-font、readme-issues、validate
 ├─ site.config.mjs  站点配置
 ├─ build.mjs        构建脚本

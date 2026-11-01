@@ -69,7 +69,7 @@ export function layout(ctx) {
   const fullTitle = page.title ? `${page.title} · ${site.title}` : `${site.title} · ${t.siteTagline}`;
   const desc = page.description || t.description;
   const canonical = page.alternates[lang];
-  const nav = [['home', t.nav.home, root, 'home-5-line'], ['archive', t.nav.archive, `${root}archive/`, 'archive-line'], ['guide', t.nav.guide, `${root}guide/`, 'book-2-line']];
+  const nav = [['home', t.nav.home, root, 'home-5-line'], ['archive', t.nav.archive, `${root}archive/`, 'archive-line'], ['guide', t.nav.guide, `${root}guide/`, 'book-2-line'], ['community', t.nav.community, `${root}community/`, 'community-line']];
   const zhPath = lang === 'en' && page.altPaths.zh ? page.altPaths.zh : '';
   const ogImg = page.image;
   const ogAlt = page.imageAlt || page.title || site.title;
@@ -171,7 +171,7 @@ export function footer(site, lang, t) {
       <div class="footer-cols">
         <div><h2>${f.content}</h2><a href="${latestHref(site, lang)}">${f.latest}</a><a href="${root}archive/">${f.archive}</a><a href="${root}feed.xml">${f.rss}</a></div>
         <div><h2>${f.guide}</h2><a href="${root}guide/getting-started/">${f.gs}</a><a href="${root}guide/concepts/">${f.concepts}</a><a href="${root}guide/faq/">${f.faq}</a></div>
-        <div><h2>${f.community}</h2><a href="${site.repo}" target="_blank" rel="noopener">${f.repo}</a><a href="${site.repo}/issues" target="_blank" rel="noopener">${f.submit}</a></div>
+        <div><h2>${f.community}</h2><a href="${root}community/">${f.join}</a><a href="${site.repo}" target="_blank" rel="noopener">${f.repo}</a><a href="${site.repo}/issues" target="_blank" rel="noopener">${f.submit}</a></div>
       </div>
     </div>
   </div>
