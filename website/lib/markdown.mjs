@@ -1,6 +1,7 @@
 // Markdown 渲染：marked + 自定义容器（::: type 参数 ... :::）
 // Markdown rendering with marked plus a few custom containers.
 import { avatarSvg, isKnownBot } from './avatar.mjs';
+import { ri } from './icons.mjs';
 import { Marked } from 'marked';
 
 export const esc = (s = '') =>
@@ -46,14 +47,15 @@ export function createRenderer(t) {
 
   const containers = {
     callout: (arg, body) =>
-      `<aside class="callout"><div class="callout-lead">${esc(arg || t.calloutDefault)}</div><div class="callout-body">${md.parse(body)}</div></aside>`,
+      `<aside class="callout"><div class="callout-lead">${ri('information-line')}${esc(arg || t.calloutDefault)}</div><div class="callout-body">${md.parse(body)}</div></aside>`,
     prompt: (arg, body) =>
-      `<div class="prompt"><div class="prompt-head"><span>${esc(arg || t.promptLabel)}</span><button class="copy-btn" type="button" data-copy data-copied="${esc(t.copied)}" data-fail="${esc(t.copyFail)}">${esc(t.copy)}</button></div><pre><code>${esc(body)}</code></pre></div>`,
+      `<div class="prompt"><div class="prompt-head"><span>${esc(arg || t.promptLabel)}</span><button class="copy-btn" type="button" data-copy data-copied="${esc(t.copied)}" data-fail="${esc(t.copyFail)}">${ri('file-copy-line')}${ri('check-line')}<span>${esc(t.copy)}</span></button></div><pre><code>${esc(body)}</code></pre></div>`,
     proscons: (arg, body) => {
       const parts = body.split(/^####\s+/m).filter((p) => p.trim());
       return `<div class="proscons">${parts.map((p, i) => {
         const [h, ...rest] = p.split('\n');
-        const items = listItems(rest.join('\n')).map((x) => `<li>${inline(x)}</li>`).join('');
+        const mark = ri(i === 0 ? 'check-line' : 'close-line');
+        const items = listItems(rest.join('\n')).map((x) => `<li>${mark}${inline(x)}</li>`).join('');
         return `<div class="pc ${i === 0 ? 'pc-pro' : 'pc-con'}"><div class="pc-h">${esc(h.trim())}</div><ul>${items}</ul></div>`;
       }).join('')}</div>`;
     },
@@ -79,7 +81,7 @@ export function createRenderer(t) {
         const [a, site = '', date = ''] = l.split('|').map((s) => s.trim());
         const m = a.match(/^\[(.+)\]\((.+)\)$/);
         if (!m) return '';
-        return `<a class="link-card" href="${esc(m[2])}" target="_blank" rel="noopener"><span class="lc-title">${esc(m[1])}</span><span class="lc-meta">${esc(site)}${date ? ` · ${esc(date)}` : ''}</span><span class="lc-arrow" aria-hidden="true">↗</span></a>`;
+        return `<a class="link-card" href="${esc(m[2])}" target="_blank" rel="noopener"><span class="lc-title">${esc(m[1])}</span><span class="lc-meta">${esc(site)}${date ? ` · ${esc(date)}` : ''}</span><span class="lc-arrow">${ri('arrow-right-up-line')}</span></a>`;
       }).join('')}</div>`,
     flow: (arg, body) => {
       const [nodesPart, edgesPart = ''] = body.split(/^---$/m);
@@ -89,7 +91,7 @@ export function createRenderer(t) {
         return `<div class="flow-node ${kind ? 'is-' + kind : ''}${av ? ' is-bot' : ''}"><div class="fn-label">${av}${esc(label)}</div>${detail ? `<div class="fn-detail">${esc(detail)}</div>` : ''}</div>`;
       });
       const edges = listItems(edgesPart).map((l) => `<li class="${l.includes('⇢') ? 'dashed' : ''}">${esc(l)}</li>`);
-      return `<div class="flow"><div class="flow-nodes">${nodes.join('<span class="flow-arrow" aria-hidden="true">→</span>')}</div>${edges.length ? `<ul class="flow-edges">${edges.join('')}</ul>` : ''}</div>`;
+      return `<div class="flow"><div class="flow-nodes">${nodes.join(`<span class="flow-arrow">${ri('arrow-right-line')}</span>`)}</div>${edges.length ? `<ul class="flow-edges">${edges.join('')}</ul>` : ''}</div>`;
     },
   };
 
@@ -144,4 +146,17 @@ export function toPlainMarkdown(src, t, vars = {}) {
       default: return all;
     }
   });
+}
+
+// 中文标题按词断行：只在“两个字以上的词”之前允许换行，避免“机/器人”这类拆法
+// Chinese headings: allow line breaks only before multi-character words (no "机/器人" splits)
+const zhSeg = new Intl.Segmenter('zh', { granularity: 'word' });
+export function wrapTitle(text, lang) {
+  if (lang !== 'zh') return esc(text);
+  let out = '', prev = '';
+  for (const { segment, isWordLike } of zhSeg.segment(text)) {
+    if (out && isWordLike && [...segment].length >= 2 && !/[《（(“\-]$/.test(prev)) out += '<wbr>';
+    out += esc(segment); prev = segment;
+  }
+  return out;
 }

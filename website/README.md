@@ -2,7 +2,7 @@ English | [简体中文](README_ZH.md)
 
 # Study GrokBot · Website
 
-A static site with no framework: Markdown in, HTML out. The only runtime dependencies are `marked` and `gray-matter`. English is the default language at the site root; Simplified Chinese lives under `/zh/`. Each language version shows only that language.
+A static site with no framework: Markdown in, HTML out. The only runtime dependencies are `marked`, `gray-matter` and `remixicon` (icon SVGs inlined at build time). English is the default language at the site root; Simplified Chinese lives under `/zh/`. Each language version shows only that language.
 
 Live site: **https://studygrokbot.com/**. `study-grokbot.com` 301-redirects to it.
 
@@ -12,7 +12,7 @@ Live site: **https://studygrokbot.com/**. `study-grokbot.com` 301-redirects to i
 npm install
 npm run dev          # build + local preview at http://localhost:4173 (rebuilds on change)
 npm run build        # output to dist/
-npm run font         # download Source Han Serif SC to ~/.cache/study-grokbot/fonts/ (share images only)
+npm run font         # download Source Han Sans SC to ~/.cache/study-grokbot/fonts/ (share images only)
 npm run og           # render the share images (needs Playwright Chromium: npx playwright install chromium)
 npm run build:full   # build → font → og → build
 npm run check        # links, anchors, JSON-LD, hreflang, canonical, sitemap, share-card meta, image sizes, no web fonts
@@ -25,16 +25,21 @@ npm run new -- "<Chinese topic>" "English topic" 2026-11-02   # scaffold a new i
 ## Languages, theme and fonts
 
 - **Content**: `issues/{en,zh}/*.md` and `guide/{en,zh}/*.md`. Files with the same name are translations of each other and get hreflang links automatically.
-- **UI strings**: `lib/i18n.mjs`. Every page uses only its own language; the language switcher shows native names (English / 简体中文).
+- **UI strings**: `lib/i18n.mjs`. Every page uses only its own language; the language menu shows native names (English / 简体中文).
+- **Latest issue**: internal "Latest issue" links point straight at the newest issue (`site.latest`, set in `build.mjs`; `latestHref()` in `lib/templates.mjs`). `/latest/` and `/zh/latest/` stay for outside links: a site-styled, `noindex` page that jumps to the issue at once with JS (meta refresh without JS), with its canonical on the issue.
+- **Header menus**: language and theme are icon + dropdown menus (`dropdown()` in `lib/templates.mjs`, keyboard support in `assets/main.js`). Desktop shows the icon and label; at 760px and below only the icon button is shown.
 - **First visit**: browsers that prefer Chinese are sent to the matching `/zh/` page. The choice is saved in `localStorage.sg-lang`, a manual switch always wins, and crawlers are never redirected.
 - **Theme**: auto / light / dark, saved in `localStorage.sg-theme` and applied before first paint.
-- **Fonts**: system serif fonts only. Site pages load no web fonts.
+- **Fonts**: each OS's own UI sans-serif for reading (PingFang SC / Microsoft YaHei / Noto Sans CJK for Chinese; San Francisco / Segoe UI / Roboto for English), set as `--font-zh` / `--font-en` in `assets/style.css`. Site pages load no web fonts.
+- **Icons**: [Remix Icon](https://remixicon.com/) only, via `ri('name')` from `lib/icons.mjs`, which inlines the SVG at build time (no icon font, no external request; an unknown name fails the build). See `AGENTS.md` at the repo root.
 
 ## Share images (Open Graph / X cards)
 
 - One site image per language (`og/site-en.png`, `og/site-zh.png`) and one per issue per language (`og/issue-DATE-en.png`, `og/issue-DATE-zh.png`). Each is a 1200×630 PNG, aiming for under 300 KB, with text in that language only.
-- They are rendered at build time with **Source Han Serif SC** (OFL) from [Adobe's official release](https://github.com/adobe-fonts/source-han-serif/releases). The font is never committed: locally it is cached in `~/.cache/study-grokbot/fonts/source-han-serif-<version>/` (override with `OG_FONT_DIR`), and CI caches it with `actions/cache`, keyed on `SHS_VERSION`.
-- `npm run og` fails if the font is missing, and checks with the Chrome DevTools Protocol (`CSS.getPlatformFontsForNode`) that every piece of text actually used Source Han Serif.
+- They are rendered at build time with **Source Han Sans SC** (OFL) from [Adobe's official release](https://github.com/adobe-fonts/source-han-sans/releases). The font is never committed: locally it is cached in `~/.cache/study-grokbot/fonts/source-han-sans-<version>/` (override with `OG_FONT_DIR`), and CI caches it with `actions/cache`, keyed on `SHS_VERSION`.
+- `npm run og` fails if the font is missing, and checks with the Chrome DevTools Protocol (`CSS.getPlatformFontsForNode`) that every piece of text actually used Source Han Sans.
+- The design follows the site (`lib/og.mjs`): white background with a warm orange glow, black title (the site card uses the homepage title with the orange-gradient "GrokBot"), the capped orb bot (the site logo) on the right looking at the title, and the example Bot avatars at the bottom. Bump `OG_DESIGN` when you change the template so cached PNGs re-render.
+- `npm run og` uses Playwright's Chromium (`npx playwright install chromium`) and falls back to the installed Google Chrome.
 - All content sits inside a central safe area, because X crops to about 1.91:1 and some clients to 2:1.
 - Meta tags: absolute `og:image`, `og:image:type/width/height/alt`, `og:locale` and `og:locale:alternate`, `twitter:card=summary_large_image`, `twitter:image:alt` and `twitter:site`/`twitter:creator` (from `twitter` in `site.config.mjs`).
 
@@ -79,12 +84,28 @@ Extra containers (`::: type args` … `:::`):
 
 Every bot shown on the site (homepage mock, card chips, issue tables, flow diagrams) uses one generator: `lib/avatar.mjs`. The style follows GrokBot's avatar picker and is drawn from scratch as SVG; no official assets are used.
 
-- **Look:** one of 11 palette colours (black, brown, red, orange-red, orange, green, teal, blue, purple, pink, grey) × one of 14 shapes (orb, cloud, tilted square, 4-point star, puffy, heart, flower, drop, pill, triangle, rounded square, 6-point star, hexagon, apple) + two white vertical-oval eyes toward the upper right + a soft gloss.
+- **Look:** one flat colour from an 11-colour palette (black, grey, red, orange, pink, amber, green, teal, blue, indigo, violet; grouped into colour families) × one of 5 soft shapes (orb, soft triangle, soft square, egg, bean; the orb is the most common) + two capsule eyes cut out of the body (`fill-rule="evenodd"`), tilted and looking up-right: same length, the near eye wider, the far eye narrower. No gradient, gloss or shadow, matching GrokBot's flat marks.
 - **Assignment:** the FNV-1a hash of the bot's key picks the colour and shape, so it looks random but stays the same on every build. `BOT_KEYS` maps the English and Chinese names to one key, so a bot looks the same in both languages.
-- **Lineup:** the example bots (`LINEUP`) never share a colour or shape. On a collision the generator moves forward to the next free slot.
+- **Lineup:** the example bots (`LINEUP`) never share a colour, spread across colour families where possible, and never share a shape other than the orb. On a collision the generator moves forward to the next free slot.
 - **Usage:** `avatarSvg(name, { size, title, color, shape })` returns inline SVG. `color`/`shape` ids override the hash. In Markdown, a table cell or `::: flow` node whose text is exactly a known bot name gets its avatar automatically. To add a bot, add its names to `BOT_KEYS`.
-- **Dark mode:** black, grey and brown avatars get a faint light outline (CSS in `assets/style.css`, `.bot-av`).
-- **Hero orb:** `orbSvg()` draws the round bot above the homepage title. Its eyes follow the mouse or touch point (`assets/main.js`), blink and drift when idle, and stay still under `prefers-reduced-motion`. Its colours come from the `--orb-*` CSS variables for light and dark mode.
+- **Dark mode:** the black avatar is drawn light instead, like the hero orb (CSS in `assets/style.css`, `.bot-av[data-color=black]`).
+- **Hero orb and logo:** `orbSvg()` draws the round bot above the homepage title and the site logo in the header and footer (`mark()` in `lib/templates.mjs`; any element with `data-orb` gets the interaction). It wears a mortarboard (`CAP` in `lib/avatar.mjs`, accent-coloured tassel) tilted on the top-right, which moves with the head. Hovering shows squinting smile eyes (`> <`). The favicon (`assets/favicon.svg`) is a static white version of the same capped bot, drawn from the same `ORB`/`CAP` geometry.
+- **Hero orb details:** At rest its two upright capsule eyes sit symmetrically at the centre; they follow the mouse or touch point (`assets/main.js`, the eye on the gaze side narrows slightly), blink and drift when idle, and stay still under `prefers-reduced-motion`. The head uses `--fg` and the eyes `--bg`, so it inverts with the theme.
+
+## Homepage showcase
+
+The chat mock under the homepage title is built from `showcase.chats` in `lib/i18n.mjs` (one entry per Bot plus group chats with `group` and `members`), rendered by `showcase()` in `build.mjs`. Tabs switch between conversations. Once the mock is on screen (`assets/main.js`), messages load one by one: your message is typed into the input and sent, Bots show a typing indicator first, tool lines pop in. After a conversation finishes it moves on to the next one; this auto-advance pauses on hover, off screen or in a hidden tab, and stops for good once the user picks a tab. Its height is locked to the full conversation so nothing shifts. With `prefers-reduced-motion` everything is shown at once and nothing advances. Message tuples:
+
+| Tuple | Renders as |
+| --- | --- |
+| `['me', text]` | your message bubble |
+| `['bot', from, text]` | a Bot reply; `{@Name}` becomes a mention with avatar |
+| `['tool', from, icon, text]` | a tool-call line (`icon` is a Remix Icon name) |
+| `['file', from, name, meta]` | a file card |
+| `['routine', from, title, when]` | a Routine card |
+| `['handoff', from, to, [[key, value], …]]` | a handoff card |
+| `['approve', from, title, desc, [yes, no]]` | an approval card |
+| `['typing', from]` | typing indicator |
 
 ## SEO / GEO output
 
@@ -108,7 +129,7 @@ website/
 ├─ guide/{en,zh}/   guide pages
 ├─ assets/          style.css, main.js, favicon.svg
 ├─ public/          copied to the dist root (CNAME)
-├─ lib/             markdown, templates, i18n, avatar (bot avatars + hero orb), og (share-card template), og-font (font version and paths)
+├─ lib/             markdown, templates, i18n, icons (Remix Icon), avatar (bot avatars + hero orb), og (share-card template), og-font (font version and paths)
 ├─ scripts/         new-issue, og, fetch-font, readme-issues, validate
 ├─ site.config.mjs  site settings
 ├─ build.mjs        build script

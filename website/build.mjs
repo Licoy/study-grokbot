@@ -5,8 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import site from './site.config.mjs';
-import { createRenderer, toPlainMarkdown, esc } from './lib/markdown.mjs';
-import { layout, tagList, issueRow, icon } from './lib/templates.mjs';
+import { createRenderer, toPlainMarkdown, esc, wrapTitle } from './lib/markdown.mjs';
+import { layout, tagList, issueRow, icon, latestHref } from './lib/templates.mjs';
+import { ri } from './lib/icons.mjs';
 import { LANGS, DEFAULT_LANG, dict } from './lib/i18n.mjs';
 import { ogTitle, specHash } from './lib/og.mjs';
 import { avatarSvg, orbSvg, LINEUP } from './lib/avatar.mjs';
@@ -81,6 +82,10 @@ function loadIssues(lang) {
     };
   }).filter((x) => !x.draft || process.env.DRAFTS).sort((a, z) => z.date.localeCompare(a.date));
 }
+// 阅读时长：中文按每分钟约 400 字，英文按每分钟约 220 词 / reading time: ~400 CJK characters or ~220 English words per minute
+const readMinutes = (text, lang) => Math.max(1, Math.round(lang === 'zh'
+  ? (text.match(/[\u4e00-\u9fff]/g) || []).length / 400 + (text.match(/[A-Za-z]+/g) || []).length / 220
+  : (text.match(/\S+/g) || []).length / 220));
 function loadGuides(lang) {
   const t = dict[lang];
   const render = createRenderer(t);
@@ -89,35 +94,25 @@ function loadGuides(lang) {
     if (!fs.existsSync(file)) return null;
     const { data, content } = matter(fs.readFileSync(file, 'utf8'));
     const vars = { base: b, root: rel(lang) };
-    return { ...g, lang, title: data.title, summary: data.summary ?? '', html: render(content, vars).html, content: toPlainMarkdown(content, t, vars).trim() };
+    const plain = toPlainMarkdown(content, t, vars).trim();
+    const { html, toc } = render(content, vars);
+    return { ...g, lang, title: data.title, summary: data.summary ?? '', html, toc, content: plain, minutes: readMinutes(plain, lang) };
   }).filter(Boolean);
 }
 
 // ---------- 页面 / pages ----------
-const tocHtml = (toc, t) => toc.length
-  ? `<nav class="toc" aria-label="${esc(t.toc)}"><div class="toc-h">${esc(t.toc)}</div><ul>${toc.map((x) => `<li class="d${x.depth}"><a href="#${x.id}">${esc(x.text)}</a></li>`).join('')}</ul></nav>`
+const tocHtml = (toc, t, label = t.toc) => toc.length
+  ? `<nav class="toc" aria-label="${esc(label)}"><div class="toc-h">${esc(label)}</div><ul>${toc.map((x) => `<li class="d${x.depth}"><a href="#${x.id}">${esc(x.text)}</a></li>`).join('')}</ul></nav>`
   : '';
 
 
-// 中文标题按词断行：只在“两个字以上的词”之前允许换行，避免“机/器人”这类拆法
-// Chinese headings: allow line breaks only before multi-character words (no "机/器人" splits)
-const zhSeg = new Intl.Segmenter('zh', { granularity: 'word' });
-function wrapTitle(text, lang) {
-  if (lang !== 'zh') return esc(text);
-  let out = '', prev = '';
-  for (const { segment, isWordLike } of zhSeg.segment(text)) {
-    if (out && isWordLike && [...segment].length >= 2 && !/[《（(“\-]$/.test(prev)) out += '<wbr>';
-    out += esc(segment); prev = segment;
-  }
-  return out;
-}
 
 function issuePage(it, prev, next, pairs) {
   const { lang } = it; const t = dict[lang];
   const p = `issues/${it.slug}/`;
   const toc = [...it.toc];
   if (it.qa.length) toc.push({ depth: 2, id: 'qa', text: t.qa });
-  const tldr = it.tldr.length ? `<aside class="tldr" aria-labelledby="tldr-h"><div class="tldr-head"><h2 id="tldr-h">${esc(t.tldr)}</h2><span>${esc(t.tldrNote(t.date(it.date)))}</span></div><ul>${it.tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></aside>` : '';
+  const tldr = it.tldr.length ? `<aside class="tldr" aria-labelledby="tldr-h"><div class="tldr-head"><h2 id="tldr-h">${ri('flashlight-line')}${esc(t.tldr)}</h2><span>${esc(t.tldrNote(t.date(it.date)))}</span></div><ul>${it.tldr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></aside>` : '';
   const qa = it.qa.length ? `<section class="qa"><h2 id="qa"><a class="anchor" href="#qa" aria-hidden="true" tabindex="-1">#</a>${esc(t.qa)}</h2>${it.qa.map((x) => `<h3>${esc(x.q)}</h3><p>${esc(x.a)}</p>`).join('')}</section>` : '';
   const body = `
 <section class="page-hero">
@@ -135,8 +130,8 @@ function issuePage(it, prev, next, pairs) {
     ${it.html}
     ${qa}
     <nav class="pager">
-      ${next ? `<a class="pager-card" href="${rel(lang, `issues/${next.slug}/`)}"><span>${t.older}</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
-      ${prev ? `<a class="pager-card right" href="${rel(lang, `issues/${prev.slug}/`)}"><span>${t.newer}</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
+      ${next ? `<a class="pager-card" href="${rel(lang, `issues/${next.slug}/`)}"><span>${icon.left}${t.older}</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
+      ${prev ? `<a class="pager-card right" href="${rel(lang, `issues/${prev.slug}/`)}"><span>${t.newer}${icon.right}</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
     </nav>
   </article>
 </div>`;
@@ -154,6 +149,61 @@ function issuePage(it, prev, next, pairs) {
       image: ogUrl(`issue-${it.slug}-${lang}`), imageAlt: issueAlt(it), markdown: `${rel(lang)}issues/${it.slug}.md`, jsonld }) });
 }
 
+// 首页 Bot 小队演示（数据在 i18n 的 showcase.chats）：左侧是 Bot 和群聊，点哪个右侧就切到哪段对话（assets/main.js）
+// Home Bot-team demo (data: showcase.chats in i18n): Bots and a group chat on the left; each opens its own conversation (assets/main.js).
+const SC_ICON = { file: 'file-text-line', handoff: 'arrow-right-up-line', routine: 'repeat-line', mic: 'mic-line', send: 'arrow-up-line', add: 'add-line' };
+function showcase(lang) {
+  const s = dict[lang].showcase;
+  const av = (n, size) => avatarSvg(n, { size, title: '' });
+  const mention = (html) => html.replace(/\{@([^}]+)\}/g, (m, n) => `<span class="mention">${av(n, 15)}@${esc(n)}</span>`);
+  const stack = (members, size) => `<span class="sc-stack">${members.map((n) => av(n, size)).join('')}</span>`;
+  const msg = (c, m, prev) => {
+    const [kind, from] = m;
+    if (kind === 'me') return `<div class="m m-me" data-k="me"><div class="m-bubble">${mention(esc(from))}</div></div>`;
+    let body;
+    if (kind === 'bot') body = `<p>${mention(esc(m[2]))}</p>`;
+    else if (kind === 'tool') body = `<span class="m-tool">${ri(m[2])}${esc(m[3])}</span>`;
+    else if (kind === 'file') body = `<span class="m-card m-file"><span class="m-ic">${ri(SC_ICON.file)}</span><span><b>${esc(m[2])}</b><i>${esc(m[3])}</i></span></span>`;
+    else if (kind === 'routine') body = `<span class="m-card m-routine"><span class="m-ic">${ri(SC_ICON.routine)}</span><span><b>${esc(m[2])}</b><i>${esc(m[3])}</i></span><span class="m-switch" title="${esc(s.routineOn)}"></span></span>`;
+    else if (kind === 'handoff') {
+      const incoming = c.bot && c.bot === m[2]; // 在接收方的会话里显示“来自 …” / in the receiver's chat it reads "from …"
+      body = `<span class="m-card m-handoff"><span class="m-h">${ri(SC_ICON.handoff)}${esc(incoming ? s.handoffFrom : s.handoffTo)} <span class="mention">${av(incoming ? from : m[2], 15)}@${esc(incoming ? from : m[2])}</span></span><span class="m-kv">${m[3].map(([k, v]) => `<span><i>${esc(k)}</i>${esc(v)}</span>`).join('')}</span></span>`;
+    } else if (kind === 'approve') body = `<span class="m-card m-approve"><span class="m-tag">${ri('shield-check-line')}${esc(s.approveTag)}</span><b>${esc(m[2])}</b><i>${esc(m[3])}</i><span class="m-acts"><span class="m-btn solid">${esc(m[4][0])}</span><span class="m-btn">${esc(m[4][1])}</span></span></span>`;
+    else if (kind === 'typing') body = `<span class="m-typing"><span></span><span></span><span></span></span>`;
+    const cont = prev && prev[0] !== 'me' && prev[1] === from; // 同一个 Bot 连续发言时不再重复头像和名字 / no repeated avatar/name for consecutive messages
+    return `<div class="m m-bot${cont ? ' cont' : ''}" data-k="${kind}">${cont ? '<span class="m-av"></span>' : `<span class="m-av">${av(from, 28)}</span>`}<div class="m-body">${cont ? '' : `<div class="m-name">${esc(from)}</div>`}${body}</div></div>`;
+  };
+  const tab = (c) => {
+    const id = `sc-${lang}-${c.id}`, on = c.id === s.active;
+    const pic = c.group ? stack(c.members, 22) : av(c.bot, 30);
+    return `<button class="sc-bot${c.group ? ' is-group' : ''}" type="button" role="tab" id="${id}-tab" aria-controls="${id}" aria-selected="${on}" tabindex="${on ? 0 : -1}">${pic}<span><b>${esc(c.group || c.bot)}</b><i>${esc(c.group ? s.members(c.members.length) : c.role)}</i></span><span class="sc-dot st-${c.status}"></span></button>`;
+  };
+  const panel = (c) => {
+    const id = `sc-${lang}-${c.id}`, on = c.id === s.active, name = c.group || c.bot;
+    return `<div class="sc-panel${on ? ' on' : ''}" role="tabpanel" id="${id}" aria-labelledby="${id}-tab"${on ? '' : ' inert'}>
+          <div class="sc-top">${c.group ? stack(c.members, 26) : av(c.bot, 28)}<span class="sc-who"><b>${esc(name)}</b><i>${esc(c.group ? c.members.join(' · ') : c.role)}</i></span><span class="sc-status st-${c.status}"><span class="dot"></span>${esc(s.status[c.status])}</span></div>
+          <div class="sc-msgs">${c.msgs.map((m, i) => msg(c, m, c.msgs[i - 1])).join('')}</div>
+          <div class="sc-input"><span class="sc-add">${ri(SC_ICON.add)}</span><span class="sc-ph">${esc(s.input(name))}</span><span class="sc-mic">${ri(SC_ICON.mic)}</span><span class="sc-send">${ri(SC_ICON.send)}</span></div>
+        </div>`;
+  };
+  const bots = s.chats.filter((c) => !c.group), groups = s.chats.filter((c) => c.group);
+  return `<div class="showcase reveal" data-showcase aria-label="${esc(s.label)}">
+      <div class="sc-side" role="tablist" aria-orientation="vertical" aria-label="${esc(s.label)}">
+        <div class="sc-side-h" role="presentation">${esc(s.team)}</div>
+        ${bots.map(tab).join('')}
+        <div class="sc-side-h sc-side-h2" role="presentation">${esc(s.groups)}</div>
+        ${groups.map(tab).join('')}
+      </div>
+      <div class="sc-main">
+        ${s.chats.map(panel).join('\n        ')}
+      </div>
+    </div>`;
+}
+
+// 首页卡片 / 指南卡片的图标（Remix Icon 名）/ Remix Icon names for the home page cards
+const CARD_ICONS = ['lightbulb-flash-line', 'team-line', 'chat-quote-line', 'timer-line'];
+const GUIDE_ICONS = { 'getting-started': 'rocket-2-line', concepts: 'book-2-line', faq: 'question-answer-line' };
+
 function homePage(lang, issues) {
   const t = dict[lang]; const s = t.showcase; const latest = issues[0];
   const body = `
@@ -164,27 +214,12 @@ function homePage(lang, issues) {
     <h1 class="display hero-title" data-split>${t.hero.title}</h1>
     <p class="lede reveal">${esc(t.hero.lede)}</p>
     <div class="cta-row reveal">
-      <a class="btn btn-solid" href="${rel(lang, 'latest/')}">${esc(t.hero.primary)}</a>
-      <a class="btn btn-soft" href="${rel(lang, 'archive/')}">${esc(t.hero.secondary)}</a>
+      <a class="btn btn-solid" href="${latestHref(site, lang)}">${ri('book-open-line')}${esc(t.hero.primary)}</a>
+      <a class="btn btn-soft" href="${rel(lang, 'archive/')}">${ri('archive-line')}${esc(t.hero.secondary)}</a>
     </div>
   </div>
   <div class="container">
-    <div class="showcase reveal" aria-hidden="true">
-      <div class="sc-side">
-        <div class="sc-side-h">${esc(s.team)}</div>
-        ${s.bots.map(([n, r], i) => `<div class="sc-bot${n === s.active ? ' on' : ''}">${avatarSvg(n, { size: 30, title: '' })}<span><b>${esc(n)}</b><i>${esc(r)}</i></span></div>`).join('')}
-      </div>
-      <div class="sc-main">
-        <div class="sc-top">${avatarSvg(s.active, { size: 28, title: '' })}<b>${esc(s.active)}</b><span class="sc-status"><span class="dot"></span>${esc(s.working)}</span></div>
-        <div class="sc-msgs">
-          <div class="msg me">${esc(s.me)}</div>
-          <div class="msg bot">${s.bot.replace(/<span class="mention">@([^<]+)<\/span>/, (m, n) => `<span class="mention">${avatarSvg(n, { size: 15, title: '' })}@${n}</span>`)}</div>
-          <div class="msg handoff">${s.handoff.map((x) => `<div>${x}</div>`).join('')}</div>
-          <div class="msg bot typing"><span></span><span></span><span></span></div>
-        </div>
-        <div class="sc-input">${esc(s.input)}<span class="sc-send">${icon.right}</span></div>
-      </div>
-    </div>
+    ${showcase(lang)}
   </div>
 </section>
 ${latest ? `<section class="section">
@@ -217,7 +252,7 @@ ${latest ? `<section class="section">
           `<div class="card-art art-quote">${esc(a.quote)}<span>${esc(a.quoteBy)}</span></div>`,
           `<div class="card-art art-steps">${a.steps.map((c, j) => `<span${j < 2 ? ' class="on"' : ''}>${esc(c)}</span>`).join('')}</div>`,
         ][i];
-        return `<div class="card reveal"><div class="card-k">${esc(k)}</div><h3>${esc(h)}</h3><p>${esc(d)}</p>${art}</div>`;
+        return `<div class="card reveal"><div class="card-k">${ri(CARD_ICONS[i])}${esc(k)}</div><h3>${esc(h)}</h3><p>${esc(d)}</p>${art}</div>`;
       }).join('\n      ')}
     </div>
   </div>
@@ -225,22 +260,29 @@ ${latest ? `<section class="section">
 <section class="section">
   <div class="container narrow">
     <div class="section-head reveal row"><div><h2 class="h2">${esc(t.archiveHead)}</h2><p class="sub">${esc(t.archiveSub(issues.length))}</p></div><a class="btn btn-soft btn-sm" href="${rel(lang, 'archive/')}">${esc(t.allIssues)} ${icon.right}</a></div>
-    <div class="issue-list">${issues.slice(0, 7).map((it) => issueRow(rel(lang, `issues/${it.slug}/`), it, t)).join('')}</div>
+    <div class="issue-cards">${issues.slice(0, 7).map((it, i) => issueRow(rel(lang, `issues/${it.slug}/`), it, t, { latest: i === 0 })).join('')}</div>
   </div>
 </section>
 <section class="section">
   <div class="container">
     <div class="section-head center reveal"><h2 class="h2">${esc(t.guideHead)}</h2><p class="sub">${esc(t.guideSub)}</p></div>
     <div class="grid-3">
-      ${t.guideCards.map(([sl, h, d]) => `<a class="mini-card reveal" href="${rel(lang, `guide/${sl}/`)}"><h3>${esc(h)}</h3><p>${esc(d)}</p><span class="mc-go">${icon.right}</span></a>`).join('')}
+      ${t.guideCards.map(([sl, h, d]) => `<a class="mini-card reveal" href="${rel(lang, `guide/${sl}/`)}"><span class="mc-icon">${ri(GUIDE_ICONS[sl])}</span><h3>${esc(h)}</h3><p>${esc(d)}</p><span class="mc-go">${icon.right}</span></a>`).join('')}
     </div>
   </div>
 </section>
 <section class="section" id="faq">
-  <div class="container narrow faq-wrap">
-    <h2 class="h2 reveal">${esc(t.faqHead)}</h2>
+  <div class="container faq-wrap">
+    <div class="faq-intro reveal">
+      <h2 class="h2">${esc(t.faqHead)}</h2>
+      <p class="sub">${esc(t.faqSub)}</p>
+      <div class="faq-links">
+        <a class="btn btn-soft btn-sm" href="${rel(lang, 'guide/faq/')}">${ri('question-line')}${esc(t.faqMore)}</a>
+        <a class="btn btn-soft btn-sm" href="${site.repo}/issues" target="_blank" rel="noopener">${icon.github}${esc(t.faqAsk)}</a>
+      </div>
+    </div>
     <div class="faq">
-      ${t.faq.map(([q, a], i) => `<details class="reveal"${i === 0 ? ' open' : ''}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n      ')}
+      ${t.faq.map(([q, a], i) => `<details class="reveal"${i === 0 ? ' open' : ''}><summary><span>${esc(q)}</span><span class="faq-icon">${ri('add-line')}</span></summary><p>${esc(a)}</p></details>`).join('\n      ')}
     </div>
   </div>
 </section>
@@ -262,15 +304,23 @@ function archivePage(lang, issues) {
   const t = dict[lang];
   const byMonth = {};
   for (const it of issues) (byMonth[it.date.slice(0, 7)] ??= []).push(it);
+  // 按月分组的时间线：左侧月份（滚动时吸顶），右侧当月的期刊卡片 / monthly timeline: sticky month on the left, issue cards on the right
   const body = `
 <section class="page-hero">
   <div class="container narrow center">
     <h1 class="display reveal">${esc(t.archivePageTitle)}</h1>
     <p class="lede reveal">${esc(t.archivePageLede(issues.length))}</p>
+    <div class="cta-row reveal">
+      ${issues[0] ? `<a class="btn btn-solid" href="${latestHref(site, lang)}">${ri('sparkling-line')}${esc(t.latest)}</a>` : ''}
+      <a class="btn btn-soft" href="${rel(lang, 'feed.xml')}">${icon.rss}${esc(t.rss)}</a>
+    </div>
   </div>
 </section>
-<div class="container narrow">
-  ${Object.entries(byMonth).map(([m, list]) => `<h2 class="month">${esc(t.month(m))}</h2><div class="issue-list">${list.map((it) => issueRow(rel(lang, `issues/${it.slug}/`), it, t)).join('')}</div>`).join('')}
+<div class="container archive">
+  ${Object.entries(byMonth).map(([m, list]) => `<section class="arc-month">
+    <h2 class="arc-m reveal"><span class="arc-m-name">${esc(t.month(m))}</span><span class="arc-m-count">${esc(t.monthCount(list.length))}</span></h2>
+    <div class="issue-cards">${list.map((it) => issueRow(rel(lang, `issues/${it.slug}/`), it, t, { latest: it === issues[0] })).join('')}</div>
+  </section>`).join('\n  ')}
 </div>`;
   const jsonld = graph(lang,
     { '@type': 'CollectionPage', '@id': `${abs(lang, 'archive/')}#page`, name: t.archivePageTitle, url: abs(lang, 'archive/'), inLanguage: LANGS[lang].hreflang, isPartOf: { '@id': SITE_ID },
@@ -287,13 +337,13 @@ function guidePage(g, guides, pairs) {
   const body = `
 <section class="page-hero">
   <div class="container narrow center">
-    <a class="pill reveal" href="${rel(lang, 'guide/')}"><span class="pill-strong">${esc(t.guideLabel)}</span><span class="pill-sep">•</span><span>${esc(t.draft)}</span><span class="pill-icon">${icon.arrow}</span></a>
+    <a class="pill reveal" href="${rel(lang, 'guide/')}"><span class="pill-strong">${esc(t.guideLabel)}</span><span class="pill-sep">•</span><span>${esc(t.readTime(g.minutes))}</span><span class="pill-icon">${icon.arrow}</span></a>
     <h1 class="display reveal">${wrapTitle(g.title, lang)}</h1>
     <p class="lede reveal">${esc(g.summary)}</p>
   </div>
 </section>
 <div class="container doc-layout">
-  <aside class="doc-aside">${nav}</aside>
+  <aside class="doc-aside">${nav}${tocHtml(g.toc.filter((x) => x.depth === 2), t, t.pageToc)}</aside>
   <article class="prose">${g.html}</article>
 </div>`;
   const p = guidePath(g);
@@ -415,6 +465,8 @@ if (fs.existsSync(path.join(root, 'public'))) fs.cpSync(path.join(root, 'public'
 
 const all = {}, guides = {};
 for (const l of langs) { all[l] = loadIssues(l); guides[l] = loadGuides(l); }
+// 站内“最新一期”链接直接指向当期文章（templates.mjs 的 latestHref）/ internal "Latest issue" links point straight at the issue
+site.latest = Object.fromEntries(langs.filter((l) => all[l][0]).map((l) => [l, rel(l, `issues/${all[l][0].slug}/`)]));
 const sm = [{ alternates: Object.fromEntries(langs.map((l) => [l, abs(l)])), lastmod: all.en[0]?.date },
   { alternates: Object.fromEntries(langs.map((l) => [l, abs(l, 'archive/')])), lastmod: all.en[0]?.date }];
 const og = {};
@@ -433,8 +485,16 @@ for (const lang of langs) {
   write(`${pfx}index.html`, homePage(lang, issues));
   write(`${pfx}archive/index.html`, archivePage(lang, issues));
   if (issues[0]) {
-    const to = rel(lang, `issues/${issues[0].slug}/`);
-    write(`${pfx}latest/index.html`, `<!doctype html><html lang="${LANGS[lang].htmlLang}"><meta charset="utf-8"><title>${esc(t.latest)} · ${site.title}</title><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=${to}"><link rel="canonical" href="${abs(lang, `issues/${issues[0].slug}/`)}"><a href="${to}">${esc(issues[0].title)}</a></html>`);
+    // /latest/ 只给站外链接用（站内链接已直接指向当期）：用站点样式渲染，立即跳到当期，canonical 指向当期
+    // /latest/ is for outside links only (internal links already point at the issue): site-styled, jumps at once, canonical = the issue
+    const it = issues[0], to = rel(lang, `issues/${it.slug}/`);
+    const pairs = langs.filter((l) => all[l].some((x) => x.slug === it.slug));
+    write(`${pfx}latest/index.html`, layout({ site, lang, t, page: { ...meta(lang, `issues/${it.slug}/`, pairs), title: t.latest, noindex: true, redirect: to },
+      body: `<section class="page-hero latest-go"><div class="container narrow center">
+  <div class="orb-bot" data-orb aria-hidden="true">${orbSvg(88)}</div>
+  <p class="lede">${esc(t.latestGo)}</p>
+  <div class="issue-cards">${issueRow(to, it, t, { latest: true })}</div>
+</div></section>` }));
   }
   for (const g of guides[lang]) {
     const pairs = langs.filter((l) => guides[l].some((x) => x.slug === g.slug));
@@ -442,8 +502,9 @@ for (const lang of langs) {
     if (lang === DEFAULT_LANG || !pairs.includes(DEFAULT_LANG)) sm.push({ alternates: Object.fromEntries(pairs.map((l) => [l, abs(l, guidePath(g))])) });
   }
   write(`${pfx}feed.xml`, feed(lang, issues));
-  og[`site-${lang}`] = { lang, kind: 'site', badge: lang === 'zh' ? '每日更新' : 'Updated daily', kicker: t.siteTagline,
-    title: lang === 'en' ? 'Daily GrokBot tips, written by GrokBot' : '每天一期 GrokBot 技巧与玩法',
+  // 站点分享图的标题就是首页标题，第一个 GrokBot 用橙色渐变 / the site card uses the hero title, first "GrokBot" in the orange gradient
+  og[`site-${lang}`] = { lang, kind: 'site', badge: lang === 'zh' ? '每日更新' : 'Updated daily',
+    kicker: lang === 'en' ? 'Daily GrokBot tips, written by GrokBot' : '每天一期 GrokBot 技巧与玩法', title: t.siteTagline, accent: 'GrokBot',
     sub: lang === 'en' ? 'Tips you can use today, worked examples, and picks from the community.' : '马上能用的技巧、示例拆解，以及社区玩家的精选分享。', domain, note: ogNote[lang] };
 }
 
@@ -453,7 +514,7 @@ for (const lang of langs) {
   const t = dict[lang];
   const swap = lang === DEFAULT_LANG ? `<script>(function(){var b=${JSON.stringify(b)},p=location.pathname;${langs.filter((l) => l !== lang).map((l) => `if(p.indexOf(b+${JSON.stringify(LANGS[l].prefix)})===0){fetch(b+${JSON.stringify(LANGS[l].prefix + '404.html')}).then(function(r){return r.ok?r.text():null}).then(function(h){if(h){document.open();document.write(h);document.close();}});return;}`).join('')}})();</script>` : '';
   write(`${LANGS[lang].prefix}404.html`, layout({ site, lang, t, page: { ...meta(lang, '404.html', [lang]), title: t.notFoundTitle, noindex: true },
-    body: `${swap}<section class="page-hero"><div class="container narrow center"><h1 class="display">404</h1><p class="lede">${t.notFound}</p><div class="cta-row"><a class="btn btn-solid" href="${rel(lang)}">${t.backHome}</a><a class="btn btn-soft" href="${rel(lang, 'archive/')}">${t.nav.archive}</a></div></div></section>` }));
+    body: `${swap}<section class="page-hero"><div class="container narrow center"><h1 class="display">404</h1><p class="lede">${t.notFound}</p><div class="cta-row"><a class="btn btn-solid" href="${rel(lang)}">${ri('home-5-line')}${t.backHome}</a><a class="btn btn-soft" href="${rel(lang, 'archive/')}">${t.nav.archive}</a></div></div></section>` }));
 }
 
 write('sitemap.xml', sitemap(sm));

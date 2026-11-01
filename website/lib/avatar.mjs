@@ -1,73 +1,103 @@
 // Bot 头像规范（全站统一）/ Bot avatar spec - the single source of truth for every bot depicted on the site.
 //
-// 风格参考 GrokBot 的头像选择器，但全部由这里的 SVG 代码绘制（不使用任何官方图片素材）：
-// Style follows GrokBot's avatar picker, recreated from scratch as SVG (no official assets are used):
-//   头像 = 调色板中的 1 种纯色 × 1 种“团子”形状 × 右上方两只白色竖椭圆眼睛 + 柔和高光
-//   avatar = one palette color × one blob shape × two white vertical-oval eyes (upper right) + soft gloss
+// 风格参考 GrokBot 的头像，但全部由这里的代码绘制（不使用任何官方图片素材）：
+// Style follows GrokBot's avatars, recreated from scratch in code (no official assets are used):
+//   头像 = 调色板中的 1 种纯色 × 1 种圆润的形状 × 右上方两只镂空的胶囊眼睛
+//   avatar = one flat palette colour × one soft, rounded body × two capsule eyes cut out toward the upper right
+//   - 纯色、扁平：没有渐变、高光和阴影。/ Flat: no gradient, gloss or shadow.
+//   - 眼睛是“洞”（fill-rule="evenodd"），透出背后的底色，所以在任何背景上都协调。
+//     Eyes are holes (fill-rule="evenodd") that show whatever is behind the avatar.
+//   - 两只眼睛等长；近处那只宽、远处那只窄且一头略细，像在往右上方看。
+//     Both eyes have the same length; the near eye is wider, the far eye narrower and slightly tapered, looking up-right.
 //
 // 分配规则 / assignment:
 //   - 同一个 Bot 的中英文名字映射到同一个 key（BOT_KEYS），所以两种语言里头像一致。
 //     Both language names of a bot map to one key (BOT_KEYS) so the avatar matches across languages.
-//   - key 的哈希（FNV-1a）决定颜色和形状：结果是“随机”的，但每次构建都一样。
-//     The FNV-1a hash of the key picks color and shape: random-looking but stable across builds.
-//   - 同一组 Bot（lineup）内颜色、形状都不重复：冲突时按固定顺序往后找下一个空位。
-//     Within a lineup no color or shape repeats: collisions probe forward deterministically.
+//   - key 的哈希（FNV-1a）决定颜色和形状：结果是“随机”的，但每次构建都一样。圆形（orb）出现的概率更高。
+//     The FNV-1a hash of the key picks colour and shape: random-looking but stable across builds. Orbs are the most common shape.
+//   - 同一组 Bot（lineup）内颜色不重复，并尽量各占一个色系（避免红/粉/橙扎堆）；除圆形外，形状也不重复。
+//     冲突时按固定顺序往后找下一个空位。
+//     Within a lineup no colour repeats and colours spread across families where possible (no red/pink/orange cluster);
+//     no shape other than the orb repeats. Collisions probe forward deterministically.
 
+// family：色系，同一组 Bot 尽量各占一个色系 / colour family - a lineup spreads across families where possible
 export const PALETTE = [
-  { id: 'black', hex: '#141414' },
-  { id: 'brown', hex: '#8f5f37' },
-  { id: 'red', hex: '#ff2d46' },
-  { id: 'orange-red', hex: '#ff6414' },
-  { id: 'orange', hex: '#ff9f0a' },
-  { id: 'green', hex: '#08c46e' },
-  { id: 'teal', hex: '#00b8a3' },
-  { id: 'blue', hex: '#0a84ff' },
-  { id: 'purple', hex: '#9b5cff' },
-  { id: 'pink', hex: '#ff3aa3' },
-  { id: 'gray', hex: '#767676' },
+  { id: 'black', hex: '#161616', family: 'neutral' },
+  { id: 'gray', hex: '#7d828b', family: 'neutral' },
+  { id: 'red', hex: '#e5534b', family: 'red' },
+  { id: 'orange', hex: '#ed712e', family: 'red' },
+  { id: 'amber', hex: '#f19d38', family: 'yellow' },
+  { id: 'green', hex: '#4fb26a', family: 'green' },
+  { id: 'teal', hex: '#54b9a6', family: 'green' },
+  { id: 'blue', hex: '#3c82f6', family: 'blue' },
+  { id: 'indigo', hex: '#6464ef', family: 'blue' },
+  { id: 'violet', hex: '#885cf5', family: 'blue' },
+  { id: 'pink', hex: '#e2609c', family: 'red' },
 ];
 
-// ---------- 形状 / shapes (viewBox 0 0 100 100) ----------
+// ---------- 几何工具 / geometry helpers (viewBox 0 0 100 100) ----------
 const f = (n) => +n.toFixed(2);
-// 圆角多边形：在每个顶点用二次曲线倒角 / rounded polygon: a quadratic curve at every vertex
-function roundedPoly(pts, r) {
-  const n = pts.length; let d = '';
+const rot = ([x, y], deg, [cx, cy] = [50, 50]) => {
+  const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c];
+};
+// 经过各点的平滑闭合曲线（Catmull-Rom → 三次贝塞尔）/ smooth closed curve through the points
+function smooth(pts) {
+  const n = pts.length, P = (i) => pts[(i + n) % n];
+  let d = `M${f(P(0)[0])} ${f(P(0)[1])}`;
   for (let i = 0; i < n; i++) {
-    const [px, py] = pts[(i - 1 + n) % n], [cx, cy] = pts[i], [nx, ny] = pts[(i + 1) % n];
-    const l1 = Math.hypot(px - cx, py - cy), l2 = Math.hypot(nx - cx, ny - cy);
-    const r1 = Math.min(r, l1 / 2), r2 = Math.min(r, l2 / 2);
-    const a = [cx + (px - cx) * r1 / l1, cy + (py - cy) * r1 / l1], b = [cx + (nx - cx) * r2 / l2, cy + (ny - cy) * r2 / l2];
-    d += `${i ? 'L' : 'M'}${f(a[0])} ${f(a[1])}Q${f(cx)} ${f(cy)} ${f(b[0])} ${f(b[1])}`;
+    const [p0, p1, p2, p3] = [P(i - 1), P(i), P(i + 1), P(i + 2)];
+    d += `C${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])} ${f(p2[1])}`;
   }
   return d + 'Z';
 }
-const star = (k, ro, ri, rot = -90, cx = 50, cy = 50) => Array.from({ length: k * 2 }, (_, i) => {
-  const a = (rot + i * 180 / k) * Math.PI / 180, r = i % 2 ? ri : ro;
-  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-});
-const ngon = (k, r, rot = -90, cx = 50, cy = 50) => Array.from({ length: k }, (_, i) => {
-  const a = (rot + i * 360 / k) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-});
-const circles = (list) => list.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
-const path = (d, t = '') => `<path d="${d}"${t ? ` transform="${t}"` : ''}/>`;
+// 圆润多边形：把多边形向外“膨胀” rho（角变成圆弧），再往圆形方向鼓 puff，沿 N 个方向取样后用平滑曲线连起来。
+// Soft polygon: inflate the polygon by rho (corners become arcs), puff it towards a circle, sample N directions, smooth.
+function softPoly(corners, { rho = 12, puff = 0.12, N = 40, deg = 0 } = {}) {
+  const n = corners.length;
+  const c = [corners.reduce((a, p) => a + p[0], 0) / n, corners.reduce((a, p) => a + p[1], 0) / n];
+  const segDist = ([px, py], [ax, ay], [bx, by]) => {
+    const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  };
+  const side = (p, i) => { const a = corners[i], b = corners[(i + 1) % n]; return Math.sign((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])); };
+  const inside = (p) => { const s = corners.map((_, i) => side(p, i)); return s.every((x) => x >= 0) || s.every((x) => x <= 0); };
+  const dist = (p) => (inside(p) ? 0 : Math.min(...corners.map((a, i) => segDist(p, a, corners[(i + 1) % n]))));
+  const radii = Array.from({ length: N }, (_, i) => {
+    const a = (i / N) * 2 * Math.PI, u = [Math.cos(a), Math.sin(a)];
+    let lo = 0, hi = 200;
+    for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; dist([c[0] + u[0] * m, c[1] + u[1] * m]) < rho ? (lo = m) : (hi = m); }
+    return [a, lo];
+  });
+  const mean = radii.reduce((a, [, r]) => a + r, 0) / N;
+  return smooth(radii.map(([a, r]) => rot([c[0] + Math.cos(a) * (r * (1 - puff) + mean * puff), c[1] + Math.sin(a) * (r * (1 - puff) + mean * puff)], deg, c)));
+}
+// 胶囊（两端半径可以不同）：中心 c、总长 len、底端半径 r1、顶端半径 r2、倾斜 deg（0 = 竖直，负数 = 顶端向左）
+// Capsule with possibly different end radii: centre c, total length len, bottom radius r1, top radius r2, tilt deg (0 = upright, negative = top leans left)
+export function capsule([cx, cy], len, r1, r2 = r1, deg = 0) {
+  const d = len - r1 - r2, y0 = (r2 - r1) / 2; // 两个圆心的距离；整体居中 / distance between centres; keep the capsule centred
+  const phi = Math.asin(Math.max(-1, Math.min(1, (r2 - r1) / d)));
+  const c1 = [0, d / 2 + y0], c2 = [0, -d / 2 + y0], co = Math.cos(phi), si = Math.sin(phi);
+  const P = ([x, y]) => rot([cx + x, cy + y], deg, [cx, cy]).map(f).join(' ');
+  const b1 = [c1[0] + r1 * co, c1[1] + r1 * si], b2 = [c1[0] - r1 * co, c1[1] + r1 * si];
+  const t2 = [c2[0] - r2 * co, c2[1] + r2 * si], t1 = [c2[0] + r2 * co, c2[1] + r2 * si];
+  return `M${P(t1)}L${P(b1)}A${f(r1)} ${f(r1)} 0 ${r1 >= r2 ? 1 : 0} 1 ${P(b2)}L${P(t2)}A${f(r2)} ${f(r2)} 0 ${r2 > r1 ? 1 : 0} 1 ${P(t1)}Z`;
+}
+const ellipse = ([cx, cy], rx, ry, deg = 0) => {
+  const a = rot([cx - rx, cy], deg, [cx, cy]).map(f).join(' '), b = rot([cx + rx, cy], deg, [cx, cy]).map(f).join(' ');
+  return `M${a}A${rx} ${ry} ${deg} 1 1 ${b}A${rx} ${ry} ${deg} 1 1 ${a}Z`;
+};
 
-// eyes: [cx, cy] of the eye pair center, tilt in degrees; s = eye scale
+// ---------- 形状 / shapes ----------
+// body: 身体路径，约占满 100×100 的 92%。eyes: [近眼中心, 远眼中心, 倾斜角, 眼睛尺度 R]
+// body: path filling ~92% of the 100×100 box. eyes: [near-eye centre, far-eye centre, tilt°, eye scale R]
+// 眼睛尺寸都按 R 推算 / eye sizes derive from R: length 0.55R, near width 0.255R, far width 0.17R.
 export const SHAPES = [
-  { id: 'orb', body: '<circle cx="50" cy="50" r="41"/>', eyes: [58, 40, 12] },
-  { id: 'cloud', body: circles([[33, 56, 20], [50, 40, 22], [68, 52, 20], [50, 62, 20]]), eyes: [58, 47, 8] },
-  { id: 'tilted-square', body: path(roundedPoly([[17, 22], [80, 13], [87, 78], [22, 87]], 16)), eyes: [56, 48, -6] },
-  { id: 'star4', body: path(roundedPoly(star(4, 46, 23, -90), 12), 'rotate(8 50 50)'), eyes: [55, 47, 10] },
-  { id: 'puffy', body: circles([[36, 38, 18], [62, 36, 18], [66, 60, 18], [40, 64, 18], [50, 50, 20]]), eyes: [58, 46, 8] },
-  { id: 'heart', body: path('M50 84C30 74 12 60 13 42 14 28 24 18 37 18 44 18 48 22 50 26 52 22 58 17 66 17 80 17 89 30 87 45 85 62 68 76 50 84Z', 'rotate(-12 50 50)'), eyes: [56, 44, 0] },
-  { id: 'flower', body: circles([...ngon(6, 24, -90).map(([x, y]) => [f(x), f(y), 15]), [50, 50, 24]]), eyes: [57, 46, 6] },
-  { id: 'drop', body: path('M50 12C58 26 82 44 82 62 82 79 68 90 50 90 32 90 18 79 18 62 18 44 42 26 50 12Z', 'rotate(-18 50 52)'), eyes: [57, 56, -8] },
-  { id: 'pill', body: '<rect x="12" y="30" width="76" height="42" rx="21" transform="rotate(-8 50 51)"/>', eyes: [60, 48, -4] },
-  { id: 'triangle', body: path(roundedPoly([[28, 12], [93, 72], [9, 88]], 15)), eyes: [47, 60, 8] },
-  { id: 'rounded-square', body: path(roundedPoly([[20, 20], [80, 20], [80, 80], [20, 80]], 18), 'rotate(10 50 50)'), eyes: [56, 46, 8] },
-  { id: 'star6', body: path(roundedPoly(star(6, 45, 30, -90), 9)), eyes: [56, 46, 6] },
-  { id: 'hexagon', body: path(roundedPoly(ngon(6, 43, 0), 7), 'rotate(-10 50 50)'), eyes: [56, 46, -6] },
-  { id: 'apple', body: path('M50 30C58 22 74 22 82 34 90 46 86 66 76 78 70 86 62 88 56 86 52 85 48 85 44 86 38 88 30 86 24 78 14 66 10 46 18 34 26 22 42 22 50 30Z'),
-    extra: '<path d="M50 30C49 22 51 14 58 9" fill="none" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round"/>', eyes: [58, 52, 8] },
+  { id: 'orb', weight: 3, body: ellipse([50, 50], 46, 46), eyes: [[54.7, 34.8], [75.8, 25.2], -35, 46] },
+  { id: 'soft-triangle', body: softPoly([[36, 20], [84, 54], [26, 82]], { rho: 15, puff: 0.1 }), eyes: [[51, 32], [68, 39.5], 56, 40] },
+  { id: 'soft-square', body: softPoly([[27, 27], [73, 27], [73, 73], [27, 73]], { rho: 15, puff: 0.22, deg: -16 }), eyes: [[55, 31], [72, 27.5], -22, 40] },
+  { id: 'egg', body: ellipse([50, 51], 39, 46, -16), eyes: [[54, 30], [70.5, 25.5], -30, 40] },
+  { id: 'bean', body: ellipse([50, 52], 46, 36, -18), eyes: [[54, 37], [70, 32], -22, 38] },
 ];
 
 // 中英文名字 → 同一个 key / both language names → one stable key
@@ -90,27 +120,35 @@ function fnv1a(s) {
   return h >>> 0;
 }
 
+// 按权重展开的形状表（圆形多几份）/ shape indexes expanded by weight (more orbs)
+const SHAPE_POOL = SHAPES.flatMap((s, i) => Array(s.weight || 1).fill(i));
 // 单个 key 的“原始”选择 / raw pick for one key
 export function rawPick(key) {
   const h = fnv1a(key);
-  return { color: h % PALETTE.length, shape: (Math.floor(h / PALETTE.length) >>> 0) % SHAPES.length };
+  return { color: h % PALETTE.length, shape: SHAPE_POOL[(Math.floor(h / PALETTE.length) >>> 0) % SHAPE_POOL.length] };
 }
 
-// 一组 key 依次分配，颜色和形状都不重复 / assign a lineup in order with no repeated color or shape
+// 一组 key 依次分配：颜色不重复且尽量分散在不同色系，非圆形的形状不重复 / assign a lineup: distinct colours across families; no repeated non-orb shape
 export function assignLineup(keys) {
-  const usedC = new Set(), usedS = new Set(), out = {};
+  const usedC = new Set(), usedF = new Set(), usedS = new Set(), out = {};
   for (const k of keys) {
     let { color, shape } = rawPick(k);
-    while (usedC.has(color)) color = (color + 1) % PALETTE.length;
-    while (usedS.has(shape)) shape = (shape + 1) % SHAPES.length;
-    usedC.add(color); usedS.add(shape); out[k] = { color, shape };
+    const order = Array.from({ length: PALETTE.length }, (_, i) => (color + i) % PALETTE.length);
+    color = order.find((c) => !usedC.has(c) && !usedF.has(PALETTE[c].family)) ?? order.find((c) => !usedC.has(c));
+    while (shape !== 0 && usedS.has(shape)) shape = (shape + 1) % SHAPES.length;
+    usedC.add(color); usedF.add(PALETTE[color].family); usedS.add(shape); out[k] = { color, shape };
   }
   return out;
 }
 const LINEUP_PICKS = assignLineup(LINEUP);
 export const pick = (name) => { const k = botKey(name); return LINEUP_PICKS[k] || rawPick(k); };
 
-let seq = 0;
+// 一对眼睛的路径 / the eye pair as path data
+function eyesPath([near, far, tilt, R]) {
+  const len = 0.55 * R, wn = 0.255 * R, wf = 0.17 * R;
+  return capsule(near, len, wn / 2, wn / 2 * 0.92, tilt) + capsule(far, len, wf / 2, wf / 2 * 0.72, tilt);
+}
+
 /**
  * 生成头像 SVG / render an avatar as inline SVG
  * @param {string} name  bot name in any language (or a key)
@@ -121,34 +159,47 @@ export function avatarSvg(name, o = {}) {
   const color = o.color ? PALETTE.find((c) => c.id === o.color) : PALETTE[p.color];
   const shape = o.shape ? SHAPES.find((s) => s.id === o.shape) : SHAPES[p.shape];
   const size = o.size ?? 32;
-  const id = `bav${++seq}`;
-  const [ex, ey, tilt] = shape.eyes;
   const title = o.title ?? name;
-  // 眼睛：两只白色竖椭圆，略带倾斜 / eyes: two white vertical ovals, slightly tilted
-  const eyes = `<g transform="rotate(${tilt} ${ex} ${ey})" fill="#fff"><ellipse cx="${ex - 7}" cy="${ey}" rx="4.4" ry="7.6"/><ellipse cx="${ex + 7}" cy="${ey}" rx="4.4" ry="7.6"/></g>`;
   return `<svg class="bot-av" data-bot="${botKey(name)}" data-color="${color.id}" data-shape="${shape.id}" width="${size}" height="${size}" viewBox="0 0 100 100" ${title ? `role="img" aria-label="${title.replace(/"/g, '&quot;')}"` : 'aria-hidden="true"'} focusable="false">`
-    + `<defs><clipPath id="${id}c">${shape.body}</clipPath>`
-    + `<radialGradient id="${id}g" cx="32%" cy="24%" r="78%"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".42" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient></defs>`
-    + `<g class="bot-av-body" fill="${color.hex}">${shape.body}</g>`
-    + `<g clip-path="url(#${id}c)"><rect width="100" height="100" fill="url(#${id}g)"/><ellipse cx="34" cy="22" rx="16" ry="7" fill="#fff" opacity=".22" transform="rotate(-24 34 22)"/></g>`
-    + (shape.extra || '') + eyes + `</svg>`;
+    + `<path fill="${color.hex}" fill-rule="evenodd" d="${shape.body}${eyesPath(shape.eyes)}"/></svg>`;
 }
 
 // 首页 Hero 的圆球 Bot（眼睛跟随指针，见 assets/main.js）/ the hero orb bot (eyes follow the pointer, see assets/main.js)
-// 一个纯色圆（前景色）+ 两只倾斜的胶囊形眼睛（背景色），无外环、无高光、无阴影；深色模式自动黑白反转。
-// One solid circle in the foreground colour + two tilted capsule eyes in the background colour; no ring, gloss or shadow.
-// Colours flip with the theme. Geometry is our own (rounded rects), in a 228-unit head space.
+// 一个纯色圆（前景色）+ 两只对称的竖直胶囊眼睛（背景色），无外环、无高光、无阴影；深色模式自动黑白反转。
+// One solid circle in the foreground colour + two symmetric upright capsule eyes in the background colour; no ring, gloss or shadow.
+// 静止时双眼对称、位于圆心高度，看向指针时整体移动、靠近视线一侧的眼睛略变窄（main.js）。
+// At rest the eyes sit level with the centre; when tracking, they shift and the eye on the gaze side narrows (main.js).
 // 显式 width/height：即使 CSS 没加载也不会被撑大 / explicit width/height so it never blows up without CSS.
 export const ORB = {
   r: 114, c: 114,
-  // [cx, cy, width, length, tilt°] - 眼睛“顶端向左”倾斜 / eyes tilt with the top leaning left
-  eyes: [[126, 77, 29.5, 62, -27], [178.5, 52, 17.5, 62, -34]],
+  // [cx, cy, width, length] - 间距 ±0.306r，宽 0.25r，长 0.56r / spacing ±0.306r, width 0.25r, length 0.56r
+  eyes: [[79.1, 114, 28.5, 64], [148.9, 114, 28.5, 64]],
 };
+// 悬停时换成一对眯起来的笑眼 “> <”（CSS 切换，见 .orb-happy）/ on hover the eyes turn into a squinting smile "> <" (CSS, .orb-happy)
+const HAPPY = 'M68 97L94 114L68 131M160 97L134 114L160 131';
+// 博士帽（学习站的标志）：歪戴在右上角，放在 .orb-ball 里随头一起动；描一圈背景色的边，和头部分开。帽穗用强调色。
+// Mortarboard (it's a study site): tilted on the top-right, inside .orb-ball so it moves with the head;
+// a background-coloured outline separates it from the head. The tassel uses the accent colour.
+export const CAP = {
+  at: 'translate(162 6) rotate(16) scale(1.3)',
+  base: 'M-36 4L-34 38Q0 52 34 38L36 4Z',
+  board: 'M-70 0L0-24L70 0L0 24Z',
+  cord: 'M0 0L54 6L54 40',
+  tassel: { x: 47, y: 36, w: 14, h: 26 },
+};
+export const capSvg = () => `<g class="orb-cap" transform="${CAP.at}">`
+  + `<path class="orb-cap-fill orb-cap-base" d="${CAP.base}" fill="#0a0a0a"/>`
+  + `<path class="orb-cap-fill" d="${CAP.board}" fill="#0a0a0a" stroke="#fff" stroke-width="8" paint-order="stroke" stroke-linejoin="round"/>`
+  + `<path class="orb-cord" d="${CAP.cord}" fill="none" stroke="#ff6a08" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+  + `<rect class="orb-tassel" x="${CAP.tassel.x}" y="${CAP.tassel.y}" width="${CAP.tassel.w}" height="${CAP.tassel.h}" rx="${CAP.tassel.w / 2}" fill="#ff6a08"/></g>`;
+
+let orbN = 0;
 export function orbSvg(size = 88) {
-  const eye = ([cx, cy, w, l, a]) => `<g transform="rotate(${a} ${cx} ${cy})"><rect class="orb-eye" x="${cx - w / 2}" y="${cy - l / 2}" width="${w}" height="${l}" rx="${w / 2}" fill="#fff"/></g>`;
+  const id = `orbClip${orbN++}`; // 一页里可能有多个圆球（页头、页脚、Hero），clipPath 的 id 不能重复 / several orbs per page need unique ids
+  const eye = ([cx, cy, w, l]) => `<g class="orb-eye-g"><rect class="orb-eye" x="${cx - w / 2}" y="${cy - l / 2}" width="${w}" height="${l}" rx="${w / 2}" fill="#fff"/></g>`;
   return `<svg class="orb-svg" width="${size}" height="${size}" viewBox="-10 -10 248 248" overflow="visible" aria-hidden="true" focusable="false" style="max-width:${size}px;max-height:${size}px">`
-    + `<defs><clipPath id="orbClip"><circle cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r - 3}"/></clipPath></defs>`
-    + `<g class="orb-ball"><circle class="orb-head" cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r}" fill="#0a0a0a"/>`
-    + `<g clip-path="url(#orbClip)"><g class="orb-eyes">${ORB.eyes.map(eye).join('')}</g></g>`
+    + `<defs><clipPath id="${id}"><circle cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r - 3}"/></clipPath></defs>`
+    + `<g class="orb-ball"><circle class="orb-head" cx="${ORB.c}" cy="${ORB.c}" r="${ORB.r}" fill="#0a0a0a"/>${capSvg()}`
+    + `<g clip-path="url(#${id})"><g class="orb-eyes">${ORB.eyes.map(eye).join('')}<path class="orb-happy" d="${HAPPY}" fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/></g></g>`
     + `</g></svg>`;
 }

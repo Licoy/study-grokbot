@@ -6,21 +6,28 @@ const ASSET_V = { css: assetV('style.css'), js: assetV('main.js') };
 // HTML 模板 / HTML templates (plain template strings, no framework)
 import { esc } from './markdown.mjs';
 import { LANGS } from './i18n.mjs';
+import { ri } from './icons.mjs';
+import { orbSvg } from './avatar.mjs';
 
+// 常用图标的别名（全部来自 Remix Icon，见 lib/icons.mjs）/ named shortcuts, all Remix Icon (see lib/icons.mjs)
 export const icon = {
-  arrow: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11 11 5M6.5 5H11v4.5"/></svg>',
-  right: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>',
-  github: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>',
-  menu: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 7H4V5h16v2Zm0 6H4v-2h16v2Zm0 6H4v-2h16v2Z"/></svg>',
-  rss: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2.5a.5.5 0 0 1 .5-.5A11.5 11.5 0 0 1 14 13.5a.5.5 0 0 1-1 0A10.5 10.5 0 0 0 2.5 3a.5.5 0 0 1-.5-.5Zm0 5a.5.5 0 0 1 .5-.5A6.5 6.5 0 0 1 9 13.5a.5.5 0 0 1-1 0A5.5 5.5 0 0 0 2.5 8a.5.5 0 0 1-.5-.5ZM3.5 14a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>',
-  auto: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" fill="currentColor"/></svg>',
-  sun: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>',
-  moon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1Z"/></svg>',
+  arrow: ri('arrow-right-up-line'),
+  right: ri('arrow-right-line'),
+  left: ri('arrow-left-line'),
+  github: ri('github-fill'),
+  menu: ri('menu-line'),
+  rss: ri('rss-line'),
+  auto: ri('contrast-2-line'),
+  sun: ri('sun-line'),
+  moon: ri('moon-line'),
+  lang: ri('translate-2'),
+  caret: ri('arrow-down-s-line'),
+  check: ri('check-line'),
 };
-// fix a typo-safe github path (keeps the original icon geometry)
 
-// 自有站点标识（打开的书），不使用任何官方标志 / Own mark: an open book. No official logos.
-export const mark = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="currentColor"/><path d="M8 10.2c2.7-1 5.3-.7 8 1.1 2.7-1.8 5.3-2.1 8-1.1v11.6c-2.7-1-5.3-.7-8 1.1-2.7-1.8-5.3-2.1-8-1.1Z" fill="none" stroke="var(--bg)" stroke-width="2" stroke-linejoin="round"/><path d="M16 11.3v11.6" stroke="var(--bg)" stroke-width="2"/></svg>`;
+// 站点标识：和首页一样的圆球 Bot（lib/avatar.mjs 自绘），眼睛跟随指针，悬停时眯眼笑（assets/main.js + CSS）
+// Site mark: the same orb bot as the hero (drawn in lib/avatar.mjs); eyes follow the pointer, squint-smile on hover.
+const mark = () => `<span class="mark" data-orb>${orbSvg(30)}</span>`;
 
 const BOT_RE = 'bot|crawl|spider|slurp|bingpreview|mediapartners|facebookexternalhit|embedly|quora link preview|pinterest|vkshare|w3c_validator|whatsapp|telegram|discord|skype|slack|lighthouse|pagespeed|gptbot|chatgpt|oai-searchbot|claude|anthropic|perplexity|ccbot|bytespider|amazonbot|applebot|duckassist|cohere|google-extended|yandex|baidu|sogou|360spider';
 
@@ -29,15 +36,27 @@ const BOT_RE = 'bot|crawl|spider|slurp|bingpreview|mediapartners|facebookexterna
 function headScript({ zhPath }) {
   return `<script>(function(){var d=document.documentElement;d.classList.add('js');var p='auto';try{p=localStorage.getItem('sg-theme')||'auto'}catch(e){}var dk=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);d.setAttribute('data-theme',dk?'dark':'light');d.setAttribute('data-theme-pref',p);${
     zhPath
-      ? `try{var s=localStorage.getItem('sg-lang');if(!s){if(/${BOT_RE}/i.test(navigator.userAgent||''))return;var l=(navigator.languages&&navigator.languages[0])||navigator.language||'';s=/^zh(-|$)/i.test(l)?'zh':'en';localStorage.setItem('sg-lang',s)}if(s==='zh')location.replace(${JSON.stringify(zhPath)}+location.search+location.hash)}catch(e){}`
+      ? `try{var s=localStorage.getItem('sg-lang');if(!s){if(/${BOT_RE}/i.test(navigator.userAgent||''))return;var l=(navigator.languages&&navigator.languages[0])||navigator.language||'';s=/^zh(-|$)/i.test(l)?'zh':'en';localStorage.setItem('sg-lang',s)}if(s==='zh'){d.setAttribute('data-nav','');location.replace(${JSON.stringify(zhPath)}+location.search+location.hash)}}catch(e){}`
       : ''
   }})();</script>`;
 }
 
-export function themeToggle(t) {
-  return `<div class="theme-toggle" role="group" aria-label="${esc(t.theme.label)}">${['auto', 'light', 'dark']
-    .map((k) => `<button type="button" data-theme-set="${k}" title="${esc(t.theme[k])}" aria-label="${esc(t.theme[k])}">${icon[k === 'auto' ? 'auto' : k === 'light' ? 'sun' : 'moon']}</button>`)
-    .join('')}</div>`;
+// 下拉菜单：PC 端按钮显示“图标 + 文字”，移动端只显示图标（CSS 控制）；开合与键盘操作见 assets/main.js
+// Dropdowns: icon + label on desktop, icon only on mobile (CSS); open/close and keyboard handling in assets/main.js.
+const dropdown = (cls, label, trigger, items) =>
+  `<div class="dd ${cls}"><button class="btn btn-soft btn-sm dd-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(label)}" title="${esc(label)}">${trigger}<span class="dd-caret">${icon.caret}</span></button><div class="dd-menu" role="menu" aria-label="${esc(label)}" hidden>${items}</div></div>`;
+const THEME_ICON = { auto: 'auto', light: 'sun', dark: 'moon' };
+// 按钮上同时放三种状态，由 <html data-theme-pref> 决定显示哪个，首屏就正确、不闪 / all three states in the button; <html data-theme-pref> picks one, so first paint is right
+function themeMenu(t) {
+  const keys = ['auto', 'light', 'dark'];
+  return dropdown('dd-theme', t.theme.label,
+    keys.map((k) => `<span class="dd-val" data-for="${k}">${icon[THEME_ICON[k]]}<span class="dd-label">${esc(t.theme[k])}</span></span>`).join(''),
+    keys.map((k) => `<button type="button" role="menuitemradio" aria-checked="false" data-theme-set="${k}">${icon[THEME_ICON[k]]}<span>${esc(t.theme[k])}</span><span class="dd-check">${icon.check}</span></button>`).join(''));
+}
+function langMenu(lang, langs, page, b, t) {
+  return dropdown('dd-lang', t.langLabel,
+    `${icon.lang}<span class="dd-label">${esc(LANGS[lang].label)}</span>`,
+    langs.map((l) => `<a role="menuitemradio" aria-checked="${l === lang}" href="${page.altPaths[l] || b + LANGS[l].prefix}" hreflang="${LANGS[l].hreflang}" lang="${LANGS[l].htmlLang}" data-set-lang="${l}"><span>${esc(LANGS[l].label)}</span><span class="dd-check">${icon.check}</span></a>`).join(''));
 }
 
 export function layout(ctx) {
@@ -45,11 +64,12 @@ export function layout(ctx) {
   const L = LANGS[lang];
   const b = site.base;
   const root = b + L.prefix;
+  const latest = latestHref(site, lang);
   const other = lang === 'en' ? 'zh' : 'en';
   const fullTitle = page.title ? `${page.title} · ${site.title}` : `${site.title} · ${t.siteTagline}`;
   const desc = page.description || t.description;
   const canonical = page.alternates[lang];
-  const nav = [['home', t.nav.home, root], ['archive', t.nav.archive, `${root}archive/`], ['guide', t.nav.guide, `${root}guide/`]];
+  const nav = [['home', t.nav.home, root, 'home-5-line'], ['archive', t.nav.archive, `${root}archive/`, 'archive-line'], ['guide', t.nav.guide, `${root}guide/`, 'book-2-line']];
   const zhPath = lang === 'en' && page.altPaths.zh ? page.altPaths.zh : '';
   const ogImg = page.image;
   const ogAlt = page.imageAlt || page.title || site.title;
@@ -58,6 +78,9 @@ export function layout(ctx) {
     headScript({ zhPath }),
     `<meta name="viewport" content="width=device-width, initial-scale=1">`,
     page.noindex ? `<meta name="robots" content="noindex">` : '',
+    // 跳转页（/latest/）：有 JS 时立即跳（语言自动跳转优先），没有 JS 时用 meta refresh / redirect pages (/latest/): jump at once with JS
+    // (unless the language redirect above already started), meta refresh without JS
+    page.redirect ? `<script>document.documentElement.hasAttribute('data-nav')||location.replace(${JSON.stringify(page.redirect)}+location.hash)</script><noscript><meta http-equiv="refresh" content="0; url=${esc(page.redirect)}"></noscript>` : '',
     `<title>${esc(fullTitle)}</title>`,
     `<meta name="description" content="${esc(desc)}">`,
     `<link rel="canonical" href="${canonical}">`,
@@ -93,8 +116,6 @@ export function layout(ctx) {
     page.jsonld ? `<script type="application/ld+json">${JSON.stringify(page.jsonld).replace(/</g, '\\u003c')}</script>` : '',
   ].filter(Boolean).join('\n');
 
-  const switchHref = page.altPaths[other] || b + LANGS[other].prefix;
-  const langSwitch = (cls = '') => `<a class="btn btn-soft btn-sm lang-switch ${cls}" href="${switchHref}" hreflang="${LANGS[other].hreflang}" lang="${LANGS[other].htmlLang}" data-set-lang="${other}" title="${esc(t.switchToLabel)}" aria-label="${esc(t.switchToLabel)}">${esc(t.switchTo)}</a>`;
 
   return `<!doctype html>
 <html lang="${L.htmlLang}">
@@ -105,23 +126,22 @@ ${head}
 <a class="skip" href="#main">${esc(t.skip)}</a>
 <header class="site-header">
   <nav class="nav container" aria-label="Main">
-    <a class="brand" href="${root}" aria-label="${esc(site.title)}">${mark}<span>${esc(site.title)}</span></a>
+    <a class="brand" href="${root}" aria-label="${esc(site.title)}">${mark()}<span>${esc(site.title)}</span></a>
     <div class="nav-links">
       ${nav.map(([k, x, h]) => `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${x}</a>`).join('')}
-      <a href="${site.repo}" target="_blank" rel="noopener">${t.nav.github}</a>
+      <a class="nav-gh" href="${site.repo}" target="_blank" rel="noopener">${icon.github}<span>${t.nav.github}</span></a>
     </div>
     <div class="nav-cta">
-      ${langSwitch()}
-      <span class="hide-sm">${themeToggle(t)}</span>
-      <a class="btn btn-solid btn-sm hide-xs" href="${root}latest/">${esc(t.latest)}</a>
+      ${langMenu(lang, site.langs, page, b, t)}
+      ${themeMenu(t)}
+      <a class="btn btn-solid btn-sm hide-xs" href="${latest}">${esc(t.latest)}</a>
       <button class="btn btn-soft btn-icon nav-toggle" type="button" aria-label="${esc(t.menu)}" aria-expanded="false">${icon.menu}</button>
     </div>
   </nav>
   <div class="mobile-menu" hidden>
-    ${nav.map(([, x, h]) => `<a href="${h}">${x}</a>`).join('')}
-    <a href="${root}latest/">${esc(t.latest)}</a>
-    <a href="${site.repo}" target="_blank" rel="noopener">GitHub ↗</a>
-    <div class="mm-row"><span>${esc(t.theme.label)}</span>${themeToggle(t)}</div>
+    ${nav.map(([, x, h, ic]) => `<a href="${h}">${ri(ic)}<span>${x}</span></a>`).join('')}
+    <a href="${latest}">${ri('sparkling-line')}<span>${esc(t.latest)}</span></a>
+    <a href="${site.repo}" target="_blank" rel="noopener">${icon.github}<span>${t.nav.github}</span>${icon.arrow}</a>
   </div>
 </header>
 <main id="main">
@@ -133,6 +153,10 @@ ${footer(site, lang, t)}
 </html>`;
 }
 
+// 站内“最新一期”直接链到当期文章（build.mjs 写入 site.latest），不经过 /latest/ 跳转页
+// Internal "Latest issue" links go straight to the issue (site.latest is set by build.mjs), skipping the /latest/ redirect page.
+export const latestHref = (site, lang) => site.latest?.[lang] || `${site.base}${LANGS[lang].prefix}latest/`;
+
 export function footer(site, lang, t) {
   const root = site.base + LANGS[lang].prefix;
   const f = t.footer;
@@ -140,31 +164,35 @@ export function footer(site, lang, t) {
   <div class="container">
     <div class="footer-top">
       <div class="footer-brand">
-        <a class="brand" href="${root}">${mark}<span>${esc(site.title)}</span></a>
+        <a class="brand" href="${root}">${mark()}<span>${esc(site.title)}</span></a>
         <p>${esc(t.description)}</p>
       </div>
       <div class="footer-cols">
-        <div><h2>${f.content}</h2><a href="${root}latest/">${f.latest}</a><a href="${root}archive/">${f.archive}</a><a href="${root}feed.xml">${f.rss}</a></div>
+        <div><h2>${f.content}</h2><a href="${latestHref(site, lang)}">${f.latest}</a><a href="${root}archive/">${f.archive}</a><a href="${root}feed.xml">${f.rss}</a></div>
         <div><h2>${f.guide}</h2><a href="${root}guide/getting-started/">${f.gs}</a><a href="${root}guide/concepts/">${f.concepts}</a><a href="${root}guide/faq/">${f.faq}</a></div>
         <div><h2>${f.community}</h2><a href="${site.repo}" target="_blank" rel="noopener">${f.repo}</a><a href="${site.repo}/issues" target="_blank" rel="noopener">${f.submit}</a></div>
       </div>
     </div>
-    <div class="disclaimer" role="note">
-      <p><strong>${f.noticeLabel}</strong> ${esc(f.notice)}</p>
-      <p class="repo-line">${icon.github}<a href="${site.repo}" target="_blank" rel="noopener">${site.repo.replace('https://', '')}</a><span>${esc(f.repoNote)}</span></p>
-    </div>
   </div>
+  <div class="footer-bottom"><p class="container">© ${new Date().getFullYear()} ${esc(site.title)} · ${esc(f.legal)}</p></div>
 </footer>`;
 }
 
 export const tagList = (tags = []) =>
   tags.length ? `<ul class="tags">${tags.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
 
-export function issueRow(href, it, t) {
-  return `<a class="issue-row reveal" href="${href}">
-  <span class="ir-no">${esc(t.noLabel(it.no))}</span>
-  <span class="ir-main"><span class="ir-title">${esc(it.title)}</span><span class="ir-sum">${esc(it.summary)}</span></span>
-  <time class="ir-date" datetime="${it.date}">${it.date}</time>
-  <span class="ir-go" aria-hidden="true">${icon.right}</span>
+// 期刊卡片（往期目录、首页列表共用）：左侧大号日期，右侧期号、标题、摘要、标签
+// Issue card (archive + home list): a big date on the left; number, title, summary and tags on the right.
+export function issueRow(href, it, t, { latest = false } = {}) {
+  const [, , d] = it.date.split('-');
+  return `<a class="issue-card reveal" href="${href}">
+  <time class="ic-date" datetime="${it.date}"><span class="ic-day">${d}</span><span class="ic-mon">${esc(t.dayMeta(it.date))}</span></time>
+  <span class="ic-body">
+    <span class="ic-meta"><span class="ic-no">${esc(t.noLabel(it.no))}</span>${latest ? `<span class="ic-new">${esc(t.newest)}</span>` : ''}</span>
+    <span class="ic-title">${esc(it.title)}</span>
+    <span class="ic-sum">${esc(it.summary)}</span>
+    ${it.tags.length ? `<span class="ic-tags">${it.tags.slice(0, 4).map((x) => `<span>${esc(x)}</span>`).join('')}</span>` : ''}
+  </span>
+  <span class="ic-go" aria-hidden="true">${icon.right}</span>
 </a>`;
 }

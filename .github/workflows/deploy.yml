@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 env:
-  # 思源宋体版本（改这里会自动换缓存）/ Source Han Serif release tag (changing it busts the cache)
-  SHS_VERSION: 2.003R
+  # 思源黑体版本（改这里会自动换缓存）/ Source Han Sans release tag (changing it busts the cache)
+  SHS_VERSION: 2.005R
 
 permissions:
   contents: read
@@ -44,15 +44,15 @@ jobs:
           # 主域名 / primary domain（与 site.config.mjs 默认值一致）
           SITE_URL: https://studygrokbot.com/
           BASE_PATH: /
-      # 分享图（OG / X 卡片）：用思源宋体 SC 渲染 PNG。字体来自 Adobe 官方 Release，按版本缓存；仅构建时使用，网站页面不加载任何 web 字体。
-      # Share cards: rendered with Source Han Serif SC from Adobe's official release, cached per version. Build-time only.
-      - name: Cache Source Han Serif
+      # 分享图（OG / X 卡片）：用思源黑体 SC 渲染 PNG。字体来自 Adobe 官方 Release，按版本缓存；仅构建时使用，网站页面不加载任何 web 字体。
+      # Share cards: rendered with Source Han Sans SC from Adobe's official release, cached per version. Build-time only.
+      - name: Cache Source Han Sans
         id: font-cache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/study-grokbot/fonts/source-han-serif-${{ env.SHS_VERSION }}
-          key: source-han-serif-sc-otf-${{ env.SHS_VERSION }}
-      - name: Fetch Source Han Serif
+          path: ~/.cache/study-grokbot/fonts/source-han-sans-${{ env.SHS_VERSION }}
+          key: source-han-sans-sc-otf-${{ env.SHS_VERSION }}
+      - name: Fetch Source Han Sans
         if: steps.font-cache.outputs.cache-hit != 'true'
         run: npm run font
       - name: Render OG images

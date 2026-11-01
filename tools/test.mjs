@@ -15,7 +15,7 @@ c = await ctxFor({ locale: 'zh-CN' }); [p, r] = await landed(c, '/'); ok(r === '
 ok(await p.evaluate(() => localStorage.getItem('sg-lang')) === 'zh', 'zh preference saved');
 [, r] = await landed(c, '/issues/2026-11-01/'); ok(r === '/zh/issues/2026-11-01/', `zh-CN deep link → ${r}`);
 // manual switch to English sticks
-await p.click('.nav-cta [data-set-lang="en"]'); await p.waitForLoadState('networkidle');
+await p.click('.nav-cta .dd-lang .dd-btn'); await p.click('.nav-cta [data-set-lang="en"]'); await p.waitForLoadState('networkidle');
 ok(new URL(p.url()).pathname === '/', `click EN switch → ${new URL(p.url()).pathname}`);
 await p.reload({ waitUntil: 'networkidle' }); ok(new URL(p.url()).pathname === '/', 'reload after manual EN stays on /');
 [, r] = await landed(c, '/archive/'); ok(r === '/archive/', `later visit /archive/ stays English → ${r}`);
@@ -36,10 +36,10 @@ for (const ua of ['Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.co
 // theme
 c = await ctxFor({ locale: 'en-US', colorScheme: 'light' }); [p] = await landed(c, '/');
 ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'auto + OS light → light');
-await p.click('.nav-cta [data-theme-set="dark"]');
+await p.click('.nav-cta .dd-theme .dd-btn'); await p.click('.nav-cta [data-theme-set="dark"]');
 ok(await p.evaluate(() => [document.documentElement.dataset.theme, localStorage.getItem('sg-theme'), [...document.querySelectorAll('meta[name=theme-color]')].map((m) => m.content).join()].join('|')) === 'dark|dark|#0a0a0a,#0a0a0a', 'manual Dark applied, saved, theme-color updated');
 await p.reload(); ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'dark persists after reload (applied by head script)');
-await p.emulateMedia({ colorScheme: 'dark' }); await p.click('.nav-cta [data-theme-set="auto"]');
+await p.emulateMedia({ colorScheme: 'dark' }); await p.click('.nav-cta .dd-theme .dd-btn'); await p.click('.nav-cta [data-theme-set="auto"]');
 ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'Auto follows OS dark');
 await p.emulateMedia({ colorScheme: 'light' }); await p.waitForTimeout(100);
 ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'Auto reacts live to OS switch to light');

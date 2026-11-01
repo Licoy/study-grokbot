@@ -1,5 +1,5 @@
-// 用思源宋体（Source Han Serif SC）把分享图 spec 渲染成 1200×630 PNG，写入 dist/og/ 并缓存到 .og-cache/。
-// Render the share-card specs written by build.mjs into 1200×630 PNGs with Source Han Serif SC.
+// 用思源黑体（Source Han Sans SC）把分享图 spec 渲染成 1200×630 PNG，写入 dist/og/ 并缓存到 .og-cache/。
+// Render the share-card specs written by build.mjs into 1200×630 PNGs with Source Han Sans SC.
 // Build-time only: the website itself never loads a web font. Run after `npm run build` (and `npm run font`).
 // Fails loudly if the font files are missing or if any text falls back to another font.
 import fs from 'node:fs';
@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { FONT, fontDir } from '../lib/og-font.mjs';
-import { ogHtml, specHash, OG_W, OG_H } from '../lib/og.mjs';
+import { ogHtml, specHash, OG_W, OG_H, OG_FAMILY } from '../lib/og.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cache = path.join(root, '.og-cache');
@@ -33,7 +33,9 @@ const fontUrls = Object.fromEntries(Object.entries(fonts).map(([w, p]) => [w, `$
 const byUrl = Object.fromEntries(Object.entries(fonts).map(([w, p]) => [`${ORIGIN}fonts/${path.basename(p)}`, p]));
 
 fs.mkdirSync(outDir, { recursive: true });
-const browser = await chromium.launch();
+// 优先用 Playwright 自带的 Chromium；没装（npx playwright install chromium）时退回本机的 Google Chrome
+// Prefer Playwright's bundled Chromium; fall back to the installed Google Chrome when it isn't downloaded
+const browser = await chromium.launch().catch(() => chromium.launch({ channel: 'chrome' }));
 const page = await browser.newPage({ viewport: { width: OG_W, height: OG_H }, deviceScaleFactor: 1 });
 let current = '';
 await page.route(`${ORIGIN}**`, (route) => {
@@ -50,11 +52,11 @@ for (const [name, spec] of Object.entries(specs)) {
   current = ogHtml(spec, fontUrls);
   await page.goto(ORIGIN, { waitUntil: 'load' });
   // 等字体真正加载 / wait for every weight to actually load
-  const loaded = await page.evaluate(async (weights) => {
-    await Promise.all(weights.map((w) => document.fonts.load(`${w} 40px "OG Serif"`, '学GrokBot')));
+  const loaded = await page.evaluate(async ([weights, family]) => {
+    await Promise.all(weights.map((w) => document.fonts.load(`${w} 40px "${family}"`, '学GrokBot')));
     await document.fonts.ready;
     return [...document.fonts].map((f) => `${f.weight}:${f.status}`);
-  }, Object.keys(fontUrls));
+  }, [Object.keys(fontUrls), OG_FAMILY]);
   if (loaded.some((s) => !s.endsWith(':loaded'))) die(`${name}: font faces not loaded (${loaded.join(', ')})`);
   const fit = await page.evaluate(() => window.fitTitle());
   if (fit.overflow) die(`${name}: title does not fit (size ${fit.size}px)`);
