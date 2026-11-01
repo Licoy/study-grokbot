@@ -44,7 +44,7 @@ for (const f of htmls) {
       continue;
     }
     linkCount++;
-    const [p, hash] = raw.split('#');
+    const [pq, hash] = raw.split('#'); const p = pq.split('?')[0];
     let target = f;
     if (p) {
       if (!p.startsWith('/')) { errors.push(`${relf}: relative link ${raw}`); continue; }

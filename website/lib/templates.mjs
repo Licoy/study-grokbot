@@ -1,3 +1,8 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+// 静态资源按内容加版本号，发版后浏览器/CDN 不会拿到旧缓存 / content-hash cache-busting for static assets
+const assetV = (f) => crypto.createHash('sha256').update(fs.readFileSync(new URL(`../assets/${f}`, import.meta.url))).digest('hex').slice(0, 10);
+const ASSET_V = { css: assetV('style.css'), js: assetV('main.js') };
 // HTML 模板 / HTML templates (plain template strings, no framework)
 import { esc } from './markdown.mjs';
 import { LANGS } from './i18n.mjs';
@@ -84,7 +89,7 @@ export function layout(ctx) {
     `<link rel="icon" href="${b}assets/favicon.svg" type="image/svg+xml">`,
     `<link rel="alternate" type="application/rss+xml" title="${esc(site.title)} (${L.label})" href="${root}feed.xml">`,
     page.markdown ? `<link rel="alternate" type="text/markdown" title="Markdown" href="${page.markdown}">` : '',
-    `<link rel="stylesheet" href="${b}assets/style.css">`,
+    `<link rel="stylesheet" href="${b}assets/style.css?v=${ASSET_V.css}">`,
     page.jsonld ? `<script type="application/ld+json">${JSON.stringify(page.jsonld).replace(/</g, '\\u003c')}</script>` : '',
   ].filter(Boolean).join('\n');
 
@@ -123,7 +128,7 @@ ${head}
 ${body}
 </main>
 ${footer(site, lang, t)}
-<script src="${b}assets/main.js" defer></script>
+<script src="${b}assets/main.js?v=${ASSET_V.js}" defer></script>
 </body>
 </html>`;
 }
