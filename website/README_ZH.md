@@ -75,6 +75,17 @@ npm run new -- "中文主题" "English topic" 2026-11-02   # 同时新建中英�
 | `links` | 链接卡片 | `- [标题](url) \| 站点 \| 日期` |
 | `flow` | 简单流程图 | 节点写 `- 名称 \| 说明 \| person/terminal`，`---` 后写连线 |
 
+## Bot 头像规范
+
+站内所有出现 Bot 的地方（首页对话示意、卡片标签、期刊表格、流程图）都用同一个生成器：`lib/avatar.mjs`。风格参考 GrokBot 的头像选择器，全部用 SVG 自己绘制，不使用任何官方素材。
+
+- **外观**：调色板 11 种颜色（黑、棕、红、橙红、橙、绿、青、蓝、紫、粉、灰）× 14 种形状（圆球、云朵、斜方块、四角星、团子、爱心、花朵、水滴、胶囊、三角、圆角方块、六角星、六边形、苹果）+ 右上方两只白色竖椭圆眼睛 + 柔和高光。
+- **分配**：用 Bot key 的 FNV-1a 哈希决定颜色和形状，看起来随机，但每次构建结果一样。`BOT_KEYS` 把同一个 Bot 的中英文名字映射到同一个 key，所以两种语言里头像一致。
+- **阵容**：示例 Bot（`LINEUP`）之间颜色、形状都不重复，冲突时按固定顺序顺延到下一个空位。
+- **用法**：`avatarSvg(name, { size, title, color, shape })` 返回内联 SVG；传 `color`/`shape` 的 id 可以覆盖哈希结果。Markdown 里表格单元格或 `::: flow` 节点的文字正好是已知 Bot 名时，会自动带上头像。新增 Bot 时，把它的名字加进 `BOT_KEYS`。
+- **深色模式**：黑、灰、棕三种颜色会加一圈很淡的亮边（`assets/style.css` 里的 `.bot-av`）。
+- **首页圆球**：`orbSvg()` 画出首页标题上方的圆球 Bot。眼睛跟随鼠标或触摸位置（`assets/main.js`），空闲时会眨眼、慢慢游移；开启“减少动态效果”时保持静止。颜色由 `--orb-*` CSS 变量控制，分别适配浅色和深色。
+
 ## SEO / GEO 产物
 
 | 产物 | 说明 |
@@ -97,7 +108,7 @@ website/
 ├─ guide/{en,zh}/   指南页
 ├─ assets/          style.css、main.js、favicon.svg
 ├─ public/          复制到 dist 根目录（CNAME）
-├─ lib/             markdown、templates、i18n、og（分享图模板）、og-font（字体版本与路径）
+├─ lib/             markdown、templates、i18n、avatar（Bot 头像与首页圆球）、og（分享图模板）、og-font（字体版本与路径）
 ├─ scripts/         new-issue、og、fetch-font、readme-issues、validate
 ├─ site.config.mjs  站点配置
 ├─ build.mjs        构建脚本

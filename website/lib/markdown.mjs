@@ -1,5 +1,6 @@
 // Markdown 渲染：marked + 自定义容器（::: type 参数 ... :::）
 // Markdown rendering with marked plus a few custom containers.
+import { avatarSvg, isKnownBot } from './avatar.mjs';
 import { Marked } from 'marked';
 
 export const esc = (s = '') =>
@@ -84,7 +85,8 @@ export function createRenderer(t) {
       const [nodesPart, edgesPart = ''] = body.split(/^---$/m);
       const nodes = listItems(nodesPart).map((l) => {
         const [label, detail = '', kind = ''] = l.split('|').map((s) => s.trim());
-        return `<div class="flow-node ${kind ? 'is-' + kind : ''}"><div class="fn-label">${esc(label)}</div>${detail ? `<div class="fn-detail">${esc(detail)}</div>` : ''}</div>`;
+        const av = isKnownBot(label) ? avatarSvg(label, { size: 24, title: '' }) : '';
+        return `<div class="flow-node ${kind ? 'is-' + kind : ''}${av ? ' is-bot' : ''}"><div class="fn-label">${av}${esc(label)}</div>${detail ? `<div class="fn-detail">${esc(detail)}</div>` : ''}</div>`;
       });
       const edges = listItems(edgesPart).map((l) => `<li class="${l.includes('⇢') ? 'dashed' : ''}">${esc(l)}</li>`);
       return `<div class="flow"><div class="flow-nodes">${nodes.join('<span class="flow-arrow" aria-hidden="true">→</span>')}</div>${edges.length ? `<ul class="flow-edges">${edges.join('')}</ul>` : ''}</div>`;
@@ -101,6 +103,9 @@ export function createRenderer(t) {
       return `\n<!--BLOCK${blocks.length - 1}-->\n`;
     });
     let html = md.parse(src).replace(/<!--BLOCK(\d+)-->/g, (_, i) => blocks[+i]);
+    // 表格里出现的 Bot 名字统一加上头像 / bot names in table cells get their avatar
+    html = html.replace(/<td([^>]*)>([^<]+)<\/td>/g, (all, attrs, txt) =>
+      isKnownBot(unesc(txt)) ? `<td${attrs}><span class="bot-name">${avatarSvg(unesc(txt), { size: 26, title: '' })}${txt}</span></td>` : all);
     const toc = [...html.matchAll(/<h([23]) id="([^"]+)"><a[^>]*>#<\/a>(.*?)<\/h\1>/g)].map((m) => ({
       depth: +m[1], id: m[2], text: unesc(m[3].replace(/<[^>]+>/g, '')),
     }));

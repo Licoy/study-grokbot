@@ -9,6 +9,7 @@ import { createRenderer, toPlainMarkdown, esc } from './lib/markdown.mjs';
 import { layout, tagList, issueRow, icon } from './lib/templates.mjs';
 import { LANGS, DEFAULT_LANG, dict } from './lib/i18n.mjs';
 import { ogTitle, specHash } from './lib/og.mjs';
+import { avatarSvg, orbSvg, LINEUP } from './lib/avatar.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(root, 'dist');
@@ -141,10 +142,10 @@ function issuePage(it, prev, next, pairs) {
 
 function homePage(lang, issues) {
   const t = dict[lang]; const s = t.showcase; const latest = issues[0];
-  const av = 'abcde';
   const body = `
 <section class="hero">
   <div class="container center">
+    <div class="orb-bot" data-orb aria-hidden="true">${orbSvg()}</div>
     ${latest ? `<a class="pill reveal" href="${rel(lang, `issues/${latest.slug}/`)}"><span class="pill-strong">${esc(t.hero.pill(latest.no))}</span><span class="pill-sep hide-xs">•</span><span class="hide-xs">${esc(latest.title.replace(/[《》]/g, ''))}</span><span class="pill-icon">${icon.arrow}</span></a>` : ''}
     <h1 class="display hero-title" data-split>${t.hero.title}</h1>
     <p class="lede reveal">${esc(t.hero.lede)}</p>
@@ -157,13 +158,13 @@ function homePage(lang, issues) {
     <div class="showcase reveal" aria-hidden="true">
       <div class="sc-side">
         <div class="sc-side-h">${esc(s.team)}</div>
-        ${s.bots.map(([n, r], i) => `<div class="sc-bot${n === s.active ? ' on' : ''}"><span class="av av-${av[i]}">${esc([...n][0])}</span><span><b>${esc(n)}</b><i>${esc(r)}</i></span></div>`).join('')}
+        ${s.bots.map(([n, r], i) => `<div class="sc-bot${n === s.active ? ' on' : ''}">${avatarSvg(n, { size: 30, title: '' })}<span><b>${esc(n)}</b><i>${esc(r)}</i></span></div>`).join('')}
       </div>
       <div class="sc-main">
-        <div class="sc-top"><span class="av av-c">${esc([...s.active][0])}</span><b>${esc(s.active)}</b><span class="sc-status"><span class="dot"></span>${esc(s.working)}</span></div>
+        <div class="sc-top">${avatarSvg(s.active, { size: 28, title: '' })}<b>${esc(s.active)}</b><span class="sc-status"><span class="dot"></span>${esc(s.working)}</span></div>
         <div class="sc-msgs">
           <div class="msg me">${esc(s.me)}</div>
-          <div class="msg bot">${s.bot}</div>
+          <div class="msg bot">${s.bot.replace(/<span class="mention">@([^<]+)<\/span>/, (m, n) => `<span class="mention">${avatarSvg(n, { size: 15, title: '' })}@${n}</span>`)}</div>
           <div class="msg handoff">${s.handoff.map((x) => `<div>${x}</div>`).join('')}</div>
           <div class="msg bot typing"><span></span><span></span><span></span></div>
         </div>
@@ -198,7 +199,7 @@ ${latest ? `<section class="section">
         const a = t.cardArt;
         const art = [
           `<div class="card-art art-prompt"><code>${a.prompt}</code></div>`,
-          `<div class="card-art art-chips">${a.chips.map((c) => `<span>${esc(c)}</span>`).join('')}</div>`,
+          `<div class="card-art art-chips">${a.chips.map((c, i) => `<span>${LINEUP[i] ? avatarSvg(LINEUP[i], { size: 20, title: '' }) : ''}${esc(c)}</span>`).join('')}</div>`,
           `<div class="card-art art-quote">${esc(a.quote)}<span>${esc(a.quoteBy)}</span></div>`,
           `<div class="card-art art-steps">${a.steps.map((c, j) => `<span${j < 2 ? ' class="on"' : ''}>${esc(c)}</span>`).join('')}</div>`,
         ][i];

@@ -85,4 +85,51 @@
     }), { rootMargin: '-80px 0px -70% 0px' });
     map.forEach((_, id) => { const h = document.getElementById(id); h && io2.observe(h); });
   }
+
+  // 首页圆球 Bot：眼睛跟随指针（鼠标/触摸），空闲时眨眼、游移；尊重“减少动态效果”
+  // Hero orb bot: eyes follow the pointer (mouse/touch); idle blink + drift; honours prefers-reduced-motion.
+  const orb = document.querySelector('[data-orb]');
+  const eyes = orb?.querySelector('.orb-eyes');
+  if (orb && eyes) {
+    const rm = matchMedia('(prefers-reduced-motion: reduce)');
+    const MAX_X = 12, MAX_Y = 9; // 眼睛最大偏移（SVG 单位，球体半径 47）/ max eye travel in SVG units
+    let tx = 0, ty = 0, x = 0, y = 0, lastMove = -1e9, raf = 0, visible = true;
+    const aim = (cx, cy) => {
+      const r = orb.getBoundingClientRect();
+      const dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / (r.width * 2.2)); // 越远看得越“偏”，近处平缓
+      tx = (dx / d) * k * MAX_X; ty = (dy / d) * k * MAX_Y;
+      lastMove = performance.now();
+      if (rm.matches) { x = tx; y = ty; draw(); } else kick();
+    };
+    const draw = () => eyes.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+    const tick = (now) => {
+      raf = 0;
+      if (now - lastMove > 2600) { // 空闲：缓慢游移 / idle drift
+        const t = now / 1000;
+        tx = Math.sin(t * 0.55) * MAX_X * 0.55; ty = Math.sin(t * 0.37 + 1) * MAX_Y * 0.4;
+      }
+      x += (tx - x) * 0.14; y += (ty - y) * 0.14;
+      draw();
+      if (visible && !rm.matches) raf = requestAnimationFrame(tick);
+    };
+    const kick = () => { if (!raf && visible && !rm.matches) raf = requestAnimationFrame(tick); };
+    addEventListener('pointermove', (e) => aim(e.clientX, e.clientY), { passive: true });
+    addEventListener('pointerdown', (e) => aim(e.clientX, e.clientY), { passive: true });
+    addEventListener('touchmove', (e) => { const p = e.touches[0]; p && aim(p.clientX, p.clientY); }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', () => { lastMove = performance.now() - 2000; });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) kick(); else { cancelAnimationFrame(raf); raf = 0; } }).observe(orb);
+    // 眨眼：随机间隔，偶尔连眨两下 / blink at random intervals, sometimes twice
+    const blink = () => {
+      if (!rm.matches && visible && !document.hidden) {
+        orb.classList.add('blink');
+        setTimeout(() => orb.classList.remove('blink'), 130);
+        if (Math.random() < 0.25) setTimeout(() => { orb.classList.add('blink'); setTimeout(() => orb.classList.remove('blink'), 120); }, 300);
+      }
+      setTimeout(blink, 2600 + Math.random() * 3600);
+    };
+    setTimeout(blink, 1800);
+    rm.addEventListener?.('change', kick);
+    draw(); kick();
+  }
 })();

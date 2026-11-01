@@ -75,6 +75,17 @@ Extra containers (`::: type args` … `:::`):
 | `links` | link cards | `- [Title](url) \| site \| date` |
 | `flow` | simple flow diagram | nodes `- Name \| note \| person/terminal`, edges after `---` |
 
+## Bot avatar spec
+
+Every bot shown on the site (homepage mock, card chips, issue tables, flow diagrams) uses one generator: `lib/avatar.mjs`. The style follows GrokBot's avatar picker and is drawn from scratch as SVG; no official assets are used.
+
+- **Look:** one of 11 palette colours (black, brown, red, orange-red, orange, green, teal, blue, purple, pink, grey) × one of 14 shapes (orb, cloud, tilted square, 4-point star, puffy, heart, flower, drop, pill, triangle, rounded square, 6-point star, hexagon, apple) + two white vertical-oval eyes toward the upper right + a soft gloss.
+- **Assignment:** the FNV-1a hash of the bot's key picks the colour and shape, so it looks random but stays the same on every build. `BOT_KEYS` maps the English and Chinese names to one key, so a bot looks the same in both languages.
+- **Lineup:** the example bots (`LINEUP`) never share a colour or shape. On a collision the generator moves forward to the next free slot.
+- **Usage:** `avatarSvg(name, { size, title, color, shape })` returns inline SVG. `color`/`shape` ids override the hash. In Markdown, a table cell or `::: flow` node whose text is exactly a known bot name gets its avatar automatically. To add a bot, add its names to `BOT_KEYS`.
+- **Dark mode:** black, grey and brown avatars get a faint light outline (CSS in `assets/style.css`, `.bot-av`).
+- **Hero orb:** `orbSvg()` draws the round bot above the homepage title. Its eyes follow the mouse or touch point (`assets/main.js`), blink and drift when idle, and stay still under `prefers-reduced-motion`. Its colours come from the `--orb-*` CSS variables for light and dark mode.
+
 ## SEO / GEO output
 
 | Output | Notes |
@@ -97,7 +108,7 @@ website/
 ├─ guide/{en,zh}/   guide pages
 ├─ assets/          style.css, main.js, favicon.svg
 ├─ public/          copied to the dist root (CNAME)
-├─ lib/             markdown, templates, i18n, og (share-card template), og-font (font version and paths)
+├─ lib/             markdown, templates, i18n, avatar (bot avatars + hero orb), og (share-card template), og-font (font version and paths)
 ├─ scripts/         new-issue, og, fetch-font, readme-issues, validate
 ├─ site.config.mjs  site settings
 ├─ build.mjs        build script
