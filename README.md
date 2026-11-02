@@ -34,6 +34,8 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 003 | 2026-11-03 | [Turning your work into reusable GrokBot skills](https://studygrokbot.com/issues/2026-11-03/) |
+| 002 | 2026-11-02 | [Getting started with GrokBot Routines](https://studygrokbot.com/issues/2026-11-02/) |
 | 001 | 2026-11-01 | [Managing Your Bots in GrokBot](https://studygrokbot.com/issues/2026-11-01/) |
 <!-- ISSUES:END -->
 
