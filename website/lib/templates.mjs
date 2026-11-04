@@ -114,6 +114,7 @@ export function layout(ctx) {
     page.markdown ? `<link rel="alternate" type="text/markdown" title="Markdown" href="${page.markdown}">` : '',
     `<link rel="stylesheet" href="${b}assets/style.css?v=${ASSET_V.css}">`,
     page.jsonld ? `<script type="application/ld+json">${JSON.stringify(page.jsonld).replace(/</g, '\\u003c')}</script>` : '',
+    site.analytics, // Google Analytics（见 site.config.mjs）/ see site.config.mjs
   ].filter(Boolean).join('\n');
 
 

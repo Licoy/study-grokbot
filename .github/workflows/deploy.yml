@@ -44,6 +44,9 @@ jobs:
           # 主域名 / primary domain（与 site.config.mjs 默认值一致）
           SITE_URL: https://studygrokbot.com/
           BASE_PATH: /
+          # Google Analytics 代码（仓库 Settings → Secrets and variables → Actions → Variables，完整的 <script> 片段）；没设置就不加统计
+          # Google Analytics snippet (repository variable, the full <script> tag); unset = no analytics
+          GOOGLE_ANALYTICS: ${{ vars.GOOGLE_ANALYTICS }}
       # 分享图（OG / X 卡片）：用思源黑体 SC 渲染 PNG。字体来自 Adobe 官方 Release，按版本缓存；仅构建时使用，网站页面不加载任何 web 字体。
       # Share cards: rendered with Source Han Sans SC from Adobe's official release, cached per version. Build-time only.
       - name: Cache Source Han Sans

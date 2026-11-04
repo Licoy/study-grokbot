@@ -22,6 +22,8 @@ npm run new -- "<Chinese topic>" "English topic" 2026-11-02   # scaffold a new i
 
 `site.config.mjs` holds the site URL (`SITE_URL`, default `https://studygrokbot.com/`) and base path (`BASE_PATH`, default `/`). Files in `public/` (such as `CNAME`) are copied to the root of `dist/`.
 
+**Google Analytics**: save the full tag from the GA console (the `<script async src="https://www.googletagmanager.com/gtag/js?id=G-…">` line plus the `gtag('config', …)` block) as the repository variable `GOOGLE_ANALYTICS` (Settings → Secrets and variables → Actions → Variables → New repository variable; it must be a repository variable, not one on the `github-pages` environment, which the build job cannot read). The CI build inserts it as is at the end of every page's `<head>`; a bare measurement ID (`G-…`) fails the build. Without the variable (e.g. locally) no analytics is added. Changing the variable does not redeploy on its own: run "Deploy website to GitHub Pages" from the Actions tab.
+
 ## Languages, theme and fonts
 
 - **Content**: `issues/{en,zh}/*.md` and `guide/{en,zh}/*.md`. Files with the same name are translations of each other and get hreflang links automatically.

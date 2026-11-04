@@ -22,6 +22,8 @@ npm run new -- "中文主题" "English topic" 2026-11-02   # 同时新建中英�
 
 `site.config.mjs` 里配置站点地址（`SITE_URL`，默认 `https://studygrokbot.com/`）和基础路径（`BASE_PATH`，默认 `/`）。`public/` 下的文件（如 `CNAME`）会原样复制到 `dist/` 根目录。
 
+**Google Analytics**：把 GA 后台给的完整代码（`<script async src="https://www.googletagmanager.com/gtag/js?id=G-…">` 加上 `gtag('config', …)` 那段）存成仓库变量 `GOOGLE_ANALYTICS`（Settings → Secrets and variables → Actions → Variables → New repository variable；要建在仓库级别，不要放在 `github-pages` 环境里，构建任务读不到）。CI 构建时把它原样插进每个页面的 `<head>` 末尾；只填测量 ID（`G-…`）会让构建失败。本地没设这个变量就不加统计。改了变量不会自动重新部署，需要在 Actions 里手动运行一次 “Deploy website to GitHub Pages”。
+
 ## 语言、主题、字体
 
 - **内容**：`issues/{en,zh}/*.md`、`guide/{en,zh}/*.md`，同名文件互为译文，自动生成 hreflang。

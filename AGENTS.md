@@ -34,7 +34,7 @@ Conventions for AI coding agents (and humans) working in this repo. The site liv
 
 ## 其它 / Other
 
-- 站点运行时零外部请求。
-  Zero external requests at runtime.
+- 站点运行时零外部请求。唯一例外是 Google Analytics：只在设置了 GitHub Actions 变量 `GOOGLE_ANALYTICS` 时由构建注入（见 `website/site.config.mjs`），不要另加统计或其它第三方脚本。
+  Zero external requests at runtime. The one exception is Google Analytics, injected at build time only when the GitHub Actions variable `GOOGLE_ANALYTICS` is set (see `website/site.config.mjs`); add no other trackers or third-party scripts.
 - 修改后运行 `cd website && npm run build && npm run check`。
   After changes, run `cd website && npm run build && npm run check`.
