@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 007 | 2026-11-07 | [Working with multiple Bots: groups and handoffs](https://studygrokbot.com/issues/2026-11-07/) |
 | 006 | 2026-11-06 | [Managing what your GrokBot remembers](https://studygrokbot.com/issues/2026-11-06/) |
 | 005 | 2026-11-05 | [Approvals and Auto-review in GrokBot](https://studygrokbot.com/issues/2026-11-05/) |
 | 004 | 2026-11-04 | [GrokBot's cloud computer and connected apps](https://studygrokbot.com/issues/2026-11-04/) |
