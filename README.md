@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 010 | 2026-11-10 | [Giving your Bot its own email address](https://studygrokbot.com/issues/2026-11-10/) |
 | 009 | 2026-11-09 | [Sharing Bots: templates and shared Bots](https://studygrokbot.com/issues/2026-11-09/) |
 | 007 | 2026-11-07 | [Working with multiple Bots: groups and handoffs](https://studygrokbot.com/issues/2026-11-07/) |
 | 006 | 2026-11-06 | [Managing what your GrokBot remembers](https://studygrokbot.com/issues/2026-11-06/) |
