@@ -148,14 +148,16 @@ export function toPlainMarkdown(src, t, vars = {}) {
   });
 }
 
-// 中文标题按词断行：只在“两个字以上的词”之前允许换行，避免“机/器人”这类拆法
-// Chinese headings: allow line breaks only before multi-character words (no "机/器人" splits)
+// 中文标题按词断行：只在“两个字以上的词”之前允许换行，避免“机/器人”这类拆法。
+// 不要插在 @、# 后面，以免 @handle / #话题 从中间断开。
+// Chinese headings: allow line breaks only before multi-character words (no "机/器人" splits).
+// Do not insert a break after @ or #, so @handles and #hashtags stay intact.
 const zhSeg = new Intl.Segmenter('zh', { granularity: 'word' });
 export function wrapTitle(text, lang) {
   if (lang !== 'zh') return esc(text);
   let out = '', prev = '';
   for (const { segment, isWordLike } of zhSeg.segment(text)) {
-    if (out && isWordLike && [...segment].length >= 2 && !/[《（(“\-]$/.test(prev)) out += '<wbr>';
+    if (out && isWordLike && [...segment].length >= 2 && !/[《（(“\-@#]$/.test(prev)) out += '<wbr>';
     out += esc(segment); prev = segment;
   }
   return out;

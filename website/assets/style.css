@@ -656,4 +656,6 @@ html:not([data-theme-pref]) .dd-val[data-for=auto]{display:inline-flex}
 .brand{white-space:nowrap;flex:none}
 @media (max-width:900px){.nav-links a{padding:6px 9px}.anchor{display:none}}
 .display,.prose h2,.prose h3,.pager-card strong{text-wrap:balance}
-:lang(zh) .page-hero .display{word-break:keep-all;overflow-wrap:anywhere}
+/* keep-all 按词换行；break-word 而非 anywhere，只在超长词会溢出时才从词中拆开
+   keep-all wraps on word boundaries; break-word (not anywhere) only splits a token if it would overflow */
+:lang(zh) .page-hero .display{word-break:keep-all;overflow-wrap:break-word}
