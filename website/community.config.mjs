@@ -14,5 +14,5 @@
 //   logo  中间叠站点 Logo（按最高容错级别 H 生成，盖住中间也能扫）；设为 false 则不叠
 //         overlay the site logo in the centre (codes use error correction level H, so they still scan); false to skip
 export default [
-  { id: 'wechat', icon: 'wechat-fill', qr: 'https://weixin.qq.com/g/AwYAAHn5xcOrM0xhcPSdECTJdqlZcSK35rtsEcki2XbrUajXs3N8Q5dU8nktphJP', logo: true },
+  { id: 'wechat', icon: 'wechat-fill', qr: 'https://weixin.qq.com/g/AwYAACG3_dzWU5_a5QHEzcZQWQWVKrs39exipbbf0gTirlF-kj67bP2lmlRw5opo', logo: true },
 ];
