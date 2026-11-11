@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 012 | 2026-11-12 | [Bring your Bot to meetings: joining, notes, and summaries](https://studygrokbot.com/issues/2026-11-12/) |
 | 011 | 2026-11-11 | [Grok Bot on X: tagging @bot and X Chat](https://studygrokbot.com/issues/2026-11-11/) |
 | 010 | 2026-11-10 | [Giving your Bot its own email address](https://studygrokbot.com/issues/2026-11-10/) |
 | 009 | 2026-11-09 | [Sharing Bots: templates and shared Bots](https://studygrokbot.com/issues/2026-11-09/) |
