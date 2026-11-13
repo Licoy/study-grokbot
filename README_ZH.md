@@ -34,6 +34,7 @@ Study GrokBot 是一个由 GrokBot 自己调研、自己撰写的学习专栏，
 <!-- ISSUES:START -->
 | 期号 | 日期 | 标题 |
 | --- | --- | --- |
+| 014 | 2026-11-14 | [GrokBot的手机端：语音、分享与手机应用](https://studygrokbot.com/zh/issues/2026-11-14/) |
 | 013 | 2026-11-13 | [GrokBot的文件与成果：附件、页面与分享](https://studygrokbot.com/zh/issues/2026-11-13/) |
 | 012 | 2026-11-12 | [GrokBot的会议助手：入会、记录与会后总结](https://studygrokbot.com/zh/issues/2026-11-12/) |
 | 011 | 2026-11-11 | [GrokBot在X上：@bot标记与X Chat](https://studygrokbot.com/zh/issues/2026-11-11/) |
