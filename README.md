@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 015 | 2026-11-15 | [Vault: secure sign-in, secrets, and paying for things](https://studygrokbot.com/issues/2026-11-15/) |
 | 014 | 2026-11-14 | [Grok Bot on your phone: voice, sharing, and phone apps](https://studygrokbot.com/issues/2026-11-14/) |
 | 013 | 2026-11-13 | [Files and results: attachments, pages, and sharing](https://studygrokbot.com/issues/2026-11-13/) |
 | 012 | 2026-11-12 | [Bring your Bot to meetings: joining, notes, and summaries](https://studygrokbot.com/issues/2026-11-12/) |
