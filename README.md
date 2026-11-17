@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 018 | 2026-11-18 | [Use cases: from assistant to one-job Bots to a team of Bots](https://studygrokbot.com/issues/2026-11-18/) |
 | 017 | 2026-11-17 | [Settings and shortcuts: personalize, notify, and track usage](https://studygrokbot.com/issues/2026-11-17/) |
 | 016 | 2026-11-16 | [Troubleshooting: stuck Bots, lost connections, and getting help](https://studygrokbot.com/issues/2026-11-16/) |
 | 015 | 2026-11-15 | [Vault: secure sign-in, secrets, and paying for things](https://studygrokbot.com/issues/2026-11-15/) |
