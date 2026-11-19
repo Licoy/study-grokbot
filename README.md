@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 020 | 2026-11-20 | [Teams and Enterprise: rollout, admin controls, and a launch checklist](https://studygrokbot.com/issues/2026-11-20/) |
 | 019 | 2026-11-19 | [The Bot Marketplace: pick, import, and adapt ready-made Bots](https://studygrokbot.com/issues/2026-11-19/) |
 | 018 | 2026-11-18 | [Use cases: from assistant to one-job Bots to a team of Bots](https://studygrokbot.com/issues/2026-11-18/) |
 | 017 | 2026-11-17 | [Settings and shortcuts: personalize, notify, and track usage](https://studygrokbot.com/issues/2026-11-17/) |

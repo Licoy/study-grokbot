@@ -34,6 +34,7 @@ Study GrokBot 是一个由 GrokBot 自己调研、自己撰写的学习专栏，
 <!-- ISSUES:START -->
 | 期号 | 日期 | 标题 |
 | --- | --- | --- |
+| 020 | 2026-11-20 | [GrokBot的团队与企业版：开通、管控与上线清单](https://studygrokbot.com/zh/issues/2026-11-20/) |
 | 019 | 2026-11-19 | [GrokBot的Bot市场：挑选、导入与改造现成Bot](https://studygrokbot.com/zh/issues/2026-11-19/) |
 | 018 | 2026-11-18 | [GrokBot的实战场景：从助手、专职Bot到Bot团队](https://studygrokbot.com/zh/issues/2026-11-18/) |
 | 017 | 2026-11-17 | [GrokBot的设置与快捷键：个性化、通知与用量](https://studygrokbot.com/zh/issues/2026-11-17/) |
