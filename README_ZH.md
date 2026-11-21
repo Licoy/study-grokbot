@@ -34,6 +34,7 @@ Study GrokBot 是一个由 GrokBot 自己调研、自己撰写的学习专栏，
 <!-- ISSUES:START -->
 | 期号 | 日期 | 标题 |
 | --- | --- | --- |
+| 022 | 2026-11-22 | [GrokBot的自定义工具：接入MCP服务器与自建插件](https://studygrokbot.com/zh/issues/2026-11-22/) |
 | 021 | 2026-11-21 | [GrokBot进驻Microsoft Teams：团队Bot的接入、审批与排错](https://studygrokbot.com/zh/issues/2026-11-21/) |
 | 020 | 2026-11-20 | [GrokBot的团队与企业版：开通、管控与上线清单](https://studygrokbot.com/zh/issues/2026-11-20/) |
 | 019 | 2026-11-19 | [GrokBot的Bot市场：挑选、导入与改造现成Bot](https://studygrokbot.com/zh/issues/2026-11-19/) |
