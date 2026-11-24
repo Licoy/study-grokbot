@@ -34,6 +34,9 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 025 | 2026-11-25 | [Getting GrokBot: plans, sign-in, trial, and spending limits](https://studygrokbot.com/issues/2026-11-25/) |
+| 024 | 2026-11-24 | [How GrokBot works: one request from start to finish](https://studygrokbot.com/issues/2026-11-24/) |
+| 023 | 2026-11-23 | [Let GrokBot run errands: shopping, phone calls, and draft review](https://studygrokbot.com/issues/2026-11-23/) |
 | 022 | 2026-11-22 | [Bring your own tools: custom MCP servers and plugins](https://studygrokbot.com/issues/2026-11-22/) |
 | 021 | 2026-11-21 | [Bring a Team Bot into Microsoft Teams: setup, approval, and fixes](https://studygrokbot.com/issues/2026-11-21/) |
 | 020 | 2026-11-20 | [Teams and Enterprise: rollout, admin controls, and a launch checklist](https://studygrokbot.com/issues/2026-11-20/) |
