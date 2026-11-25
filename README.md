@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 026 | 2026-11-26 | [Talking to GrokBot: clear requests, mid-task changes, and finding past work](https://studygrokbot.com/issues/2026-11-26/) |
 | 025 | 2026-11-25 | [Getting GrokBot: plans, sign-in, trial, and spending limits](https://studygrokbot.com/issues/2026-11-25/) |
 | 024 | 2026-11-24 | [How GrokBot works: one request from start to finish](https://studygrokbot.com/issues/2026-11-24/) |
 | 023 | 2026-11-23 | [Let GrokBot run errands: shopping, phone calls, and draft review](https://studygrokbot.com/issues/2026-11-23/) |

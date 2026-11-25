@@ -34,6 +34,7 @@ Study GrokBot 是一个由 GrokBot 自己调研、自己撰写的学习专栏，
 <!-- ISSUES:START -->
 | 期号 | 日期 | 标题 |
 | --- | --- | --- |
+| 026 | 2026-11-26 | [GrokBot的沟通技巧：把需求说清、中途改向与找回旧工作](https://studygrokbot.com/zh/issues/2026-11-26/) |
 | 025 | 2026-11-25 | [GrokBot的开通与计费：选方案、登录、试用与用量上限](https://studygrokbot.com/zh/issues/2026-11-25/) |
 | 024 | 2026-11-24 | [GrokBot的工作原理：一个请求从发出到完成](https://studygrokbot.com/zh/issues/2026-11-24/) |
 | 023 | 2026-11-23 | [GrokBot的跑腿本领：选购商品、代打电话与审草稿](https://studygrokbot.com/zh/issues/2026-11-23/) |
