@@ -34,6 +34,7 @@ Light, dark and auto themes, full English and Simplified Chinese versions, and s
 <!-- ISSUES:START -->
 | # | Date | Title |
 | --- | --- | --- |
+| 028 | 2026-11-28 | [Event triggers in GrokBot: Slack triggers, webhooks, and run limits](https://studygrokbot.com/issues/2026-11-28/) |
 | 027 | 2026-11-27 | [Images and videos with GrokBot: pictures, first and last frames, and short clips](https://studygrokbot.com/issues/2026-11-27/) |
 | 026 | 2026-11-26 | [Talking to GrokBot: clear requests, mid-task changes, and finding past work](https://studygrokbot.com/issues/2026-11-26/) |
 | 025 | 2026-11-25 | [Getting GrokBot: plans, sign-in, trial, and spending limits](https://studygrokbot.com/issues/2026-11-25/) |

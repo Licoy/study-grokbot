@@ -342,6 +342,8 @@ img,svg{display:block;max-width:100%}
 .prose li::marker{color:var(--muted)}
 .prose strong{color:var(--fg);font-weight:600}
 .prose code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);border:1px solid var(--border);padding:1px 6px;border-radius:6px}
+.prose > pre{margin:18px 0;padding:16px 18px;overflow-x:auto;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);font-size:13.5px;line-height:1.7}
+.prose > pre code{background:none;border:0;padding:0;border-radius:0;font-size:inherit;white-space:pre}
 .prose hr{border:0;border-top:1px solid var(--border);margin:48px 0}
 
 .callout{margin:28px 0;padding:22px 24px;border-radius:var(--radius);background:linear-gradient(135deg,rgba(255,106,8,.10),rgba(255,106,8,.02) 60%),var(--card);border:1px solid rgba(255,106,8,.18)}
